@@ -1,0 +1,7 @@
+// Place any global data in this file.
+// You can import this data from anywhere in your site by using the `import` keyword.
+
+export const SITE_TITLE = 'Kool Codez';
+export const SITE_DESCRIPTION = 'Creative coding solutions with a cool edge. Building innovative web experiences that stand out.';
+export const SITE_AUTHOR = 'Kool Codez';
+export const SITE_URL = 'https://koolcodez.com';

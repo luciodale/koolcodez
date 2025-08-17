@@ -1,0 +1,21 @@
+---
+import { SITE_TITLE } from '../consts';
+const currentYear = new Date().getFullYear();
+---
+
+<footer class="bg-[var(--color-surface)] border-t border-[var(--color-border)] py-12 mt-16">
+  <div class="max-w-7xl mx-auto px-6">
+    <div class="flex justify-between items-center flex-wrap gap-6 md:flex-col md:text-center">
+      <div class="flex items-center gap-4 md:flex-col md:gap-2">
+        <img src="/kool-codez-illustration.svg" alt="Kool Codez" class="w-15 h-auto opacity-80 hover:opacity-100 transition-opacity duration-150 md:w-12 sm:w-10" />
+        <div class="text-[var(--color-text-muted)] text-sm">
+          © {currentYear} {SITE_TITLE}. Crafted with cool code.
+        </div>
+      </div>
+      <div class="flex gap-6">
+        <a href="/blog" class="text-[var(--color-text-muted)] font-medium hover:text-[var(--color-accent)] transition-colors duration-150">Blog</a>
+        <a href="/about" class="text-[var(--color-text-muted)] font-medium hover:text-[var(--color-accent)] transition-colors duration-150">About</a>
+      </div>
+    </div>
+  </div>
+</footer>

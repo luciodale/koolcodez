@@ -1,0 +1,96 @@
+---
+import AppWrapper from '../components/building-blocks/AppWrapper.astro';
+import Card from '../components/building-blocks/Card.astro';
+import { SITE_DESCRIPTION, SITE_TITLE } from '../consts';
+---
+
+<AppWrapper title={SITE_TITLE} description={SITE_DESCRIPTION}>
+		<div class="py-16">
+			<div class="max-w-7xl mx-auto px-6">
+				<!-- Hero Section -->
+				<section class="text-center py-16 max-w-4xl mx-auto animate-[fadeIn_0.6s_ease-out]">
+					<h1 class="text-[clamp(2.5rem,5vw,4rem)] font-extrabold leading-tight mb-6 text-center">
+						<img src="/kool-codez-logo.svg" alt="Kool Codez" class="max-w-full h-auto w-[clamp(280px,50vw,400px)] block mx-auto md:w-[clamp(200px,80vw,280px)] sm:w-[clamp(180px,90vw,220px)]" />
+					</h1>
+					<p class="text-xl text-[var(--color-text-muted)] mb-12 font-normal">Creative Web Development</p>
+					<p class="text-lg text-[var(--color-text-muted)] leading-relaxed mb-12">
+						Building innovative web experiences with a cool edge. From interactive animations to cutting-edge web applications, 
+						we create digital solutions that stand out and perform exceptionally.
+					</p>
+					<div class="flex gap-4 justify-center flex-wrap md:flex-col md:items-center">
+						<a href="/blog" class="btn btn-primary md:w-full md:max-w-[300px] md:justify-center">Read Blog</a>
+						<a href="/about" class="btn btn-secondary md:w-full md:max-w-[300px] md:justify-center">About Us</a>
+					</div>
+				</section>
+
+				<!-- Expertise Section -->
+				<section class="mt-16">
+					<h2 class="text-center mb-12">What We Do</h2>
+					<div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+						<Card>
+							<div slot="icon">🚀</div>
+							<div slot="title">Innovation</div>
+							<div slot="description">Pushing the boundaries of web technology with creative solutions and cutting-edge development approaches.</div>
+						</Card>
+						<Card>	
+							<div slot="icon">⚡</div>
+							<div slot="title">Performance</div>
+							<div slot="description">Building lightning-fast web applications that deliver smooth experiences even with complex functionality.</div>		
+						</Card>
+						<Card>
+							<div slot="icon">🎨</div>
+							<div slot="title">Design</div>
+							<div slot="description">Creating stunning, modern interfaces that combine aesthetics with exceptional user experience.</div>
+						</Card>
+					</div>
+				</section>
+
+				<!-- Recent Work Section -->
+				<section class="mt-16">
+					<h2 class="text-center mb-12">Latest Insights</h2>
+					<div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+						<article class="card">
+							<h3>Creative Web Animations</h3>
+							<p class="text-[var(--color-text-muted)] mb-4">Exploring modern animation techniques to create engaging and performant web experiences.</p>
+							<a href="/blog" class="text-[var(--color-text-muted)] font-medium hover:text-[var(--color-accent)] transition-colors duration-150">Read more →</a>
+						</article>
+						<article class="card">
+							<h3>Modern Web Development</h3>
+							<p class="text-[var(--color-text-muted)] mb-4">Best practices and innovative approaches for building cutting-edge web applications.</p>
+							<a href="/blog" class="text-[var(--color-text-muted)] font-medium hover:text-[var(--color-accent)] transition-colors duration-150">Read more →</a>
+						</article>
+					</div>
+				</section>
+
+				<!-- Code Example Section -->
+				<section class="mt-16">
+					<h2 class="text-center mb-12">Cool Code Examples</h2>
+					<div class="max-w-full overflow-x-auto rounded-lg bg-[var(--color-surface)] border border-[var(--color-border)]">
+						<pre class="m-0 border-none bg-none"><code>{`// Interactive animation with performance
+const CoolAnimation = ({ children }) => {
+  const [isVisible, setIsVisible] = useState(false);
+  
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => setIsVisible(entry.isIntersecting),
+      { threshold: 0.1 }
+    );
+    
+    return () => observer.disconnect();
+  }, []);
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 50 }}
+      animate={isVisible ? { opacity: 1, y: 0 } : {}}
+      transition={{ duration: 0.6, ease: "easeOut" }}
+    >
+      {children}
+    </motion.div>
+  );
+};`}</code></pre>
+					</div>
+				</section>
+			</div>
+		</div>
+</AppWrapper>

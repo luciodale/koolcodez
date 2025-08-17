@@ -1,0 +1,78 @@
+---
+interface Props {
+  title: string;
+  description: string;
+  ogImage?: string; // Full URL to Open Graph image
+  ogType?: string; // e.g., 'website', 'article', 'profile'
+  twitterCard?: 'summary' | 'summary_large_image' | 'app' | 'player'; // Twitter card type
+  canonicalUrl?: string; // Full canonical URL for the page (optional, defaults to current page URL)
+  siteName?: string;
+  locale?: string; // e.g., en_GB, it_IT
+}
+
+const {
+  title,
+  description,
+  ogImage,
+  ogType = 'website',
+  twitterCard = 'summary_large_image',
+  canonicalUrl = Astro.url.href, // Default to the current page's URL if not provided
+  siteName = 'Kool Codez',
+  locale,
+} = Astro.props;
+
+import '../../styles/global.css';
+
+const websiteLd = {
+  '@context': 'https://schema.org',
+  '@type': 'WebSite',
+  name: siteName,
+  url: canonicalUrl,
+  inLanguage: (locale && locale.split('_')[0]) || 'en',
+};
+
+const organizationLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Organization',
+  name: siteName,
+  url: new URL('/', canonicalUrl).toString(),
+  logo: new URL('/logo.png', canonicalUrl).toString(),
+  contactPoint: [
+    {
+      '@type': 'ContactPoint',
+      email: 'lucio.dalessa@gmail.com',
+      contactType: 'customer service',
+      availableLanguage: ['en'],
+    },
+  ],
+};
+
+const websiteLdJson = JSON.stringify(websiteLd);
+const organizationLdJson = JSON.stringify(organizationLd);
+---
+
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+<meta name="generator" content={Astro.generator} />
+
+<title>{title}</title>
+<meta name="description" content={description} />
+<link rel="canonical" href={canonicalUrl} />
+<meta name="robots" content="index, follow" />
+<meta name="theme-color" content="#0f172a" />
+
+<meta property="og:title" content={title} />
+<meta property="og:description" content={description} />
+<meta property="og:url" content={canonicalUrl} />
+<meta property="og:type" content={ogType} />
+<meta property="og:site_name" content={siteName} />
+{locale && <meta property="og:locale" content={locale} />}
+{ogImage && <meta property="og:image" content={ogImage} />}
+<meta name="twitter:card" content={twitterCard} />
+<meta name="twitter:title" content={title} />
+<meta name="twitter:description" content={description} />
+{ogImage && <meta name="twitter:image" content={ogImage} />}
+
+<script type="application/ld+json" set:html={websiteLdJson} />
+<script type="application/ld+json" set:html={organizationLdJson} />
