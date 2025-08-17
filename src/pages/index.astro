@@ -6,7 +6,7 @@ import { SITE_DESCRIPTION, SITE_TITLE } from '../consts';
 
 <AppWrapper title={SITE_TITLE} description={SITE_DESCRIPTION}>
 				<!-- Hero Section -->
-				<section class="text-center py-10 md:py-24 max-w-4xl mx-auto">
+				<section class="text-center  max-w-4xl mx-auto">
 						<img src="/kool-codez-logo.svg" alt="Kool Codez" class="max-w-md mx-auto" />
 					<p class="text-xl mx-auto max-w-xl pt-6">
 						I craft fast, fluid interfaces built on a core of clean, stable, and genuinely maintainable code.
@@ -14,9 +14,9 @@ import { SITE_DESCRIPTION, SITE_TITLE } from '../consts';
 				</section>
 
 				<!-- Expertise Section -->
-				<section class="">
+				<section >
 					<h2 class="text-center mb-12 text-4xl font-light text-white">My Niche</h2>
-					<div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+					<div class="grid grid-cols-1 lg:grid-cols-3 gap-18 md:px-6">
 						<Segment>
 							<div slot="title">One truth</div>
 							<div slot="description">I enforce a 100% TypeScript environment built on a single source of truth for types. This eliminates data duplication by validating types directly against backend contracts like OpenAPI and JSON Schema, ensuring frontend to backend consistency and preventing entire classes of integration bugs.</div>
@@ -35,8 +35,8 @@ import { SITE_DESCRIPTION, SITE_TITLE } from '../consts';
 				</section>
 
 				<!-- Recent Work Section -->
-				<section class="mt-16">
-					<h2 class="text-center mb-12">Latest Insights</h2>
+				<section>
+					<h2 class="text-center mb-12 text-4xl font-light text-white">Some open source</h2>
 					<div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
 						<article class="card">
 							<h3>Creative Web Animations</h3>
