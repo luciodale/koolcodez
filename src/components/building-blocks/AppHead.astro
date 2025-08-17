@@ -60,13 +60,16 @@ const organizationLdJson = JSON.stringify(organizationLd);
 <meta name="description" content={description} />
 <link rel="canonical" href={canonicalUrl} />
 <meta name="robots" content="index, follow" />
-<meta name="theme-color" content="#0f172a" />
 
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Work+Sans:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
 <meta property="og:title" content={title} />
 <meta property="og:description" content={description} />
 <meta property="og:url" content={canonicalUrl} />
 <meta property="og:type" content={ogType} />
 <meta property="og:site_name" content={siteName} />
+
 {locale && <meta property="og:locale" content={locale} />}
 {ogImage && <meta property="og:image" content={ogImage} />}
 <meta name="twitter:card" content={twitterCard} />

@@ -1,47 +1,36 @@
 ---
 import AppWrapper from '../components/building-blocks/AppWrapper.astro';
-import Card from '../components/building-blocks/Card.astro';
+import Segment from '../components/building-blocks/Segment.astro';
 import { SITE_DESCRIPTION, SITE_TITLE } from '../consts';
 ---
 
 <AppWrapper title={SITE_TITLE} description={SITE_DESCRIPTION}>
-		<div class="py-16">
-			<div class="max-w-7xl mx-auto px-6">
 				<!-- Hero Section -->
-				<section class="text-center py-16 max-w-4xl mx-auto animate-[fadeIn_0.6s_ease-out]">
-					<h1 class="text-[clamp(2.5rem,5vw,4rem)] font-extrabold leading-tight mb-6 text-center">
-						<img src="/kool-codez-logo.svg" alt="Kool Codez" class="max-w-full h-auto w-[clamp(280px,50vw,400px)] block mx-auto md:w-[clamp(200px,80vw,280px)] sm:w-[clamp(180px,90vw,220px)]" />
-					</h1>
-					<p class="text-xl text-[var(--color-text-muted)] mb-12 font-normal">Creative Web Development</p>
-					<p class="text-lg text-[var(--color-text-muted)] leading-relaxed mb-12">
-						Building innovative web experiences with a cool edge. From interactive animations to cutting-edge web applications, 
-						we create digital solutions that stand out and perform exceptionally.
+				<section class="text-center py-10 md:py-24 max-w-4xl mx-auto">
+						<img src="/kool-codez-logo.svg" alt="Kool Codez" class="max-w-md mx-auto" />
+					<p class="text-xl mx-auto max-w-xl pt-6">
+						I craft fast, fluid interfaces built on a core of clean, stable, and genuinely maintainable code.
 					</p>
-					<div class="flex gap-4 justify-center flex-wrap md:flex-col md:items-center">
-						<a href="/blog" class="btn btn-primary md:w-full md:max-w-[300px] md:justify-center">Read Blog</a>
-						<a href="/about" class="btn btn-secondary md:w-full md:max-w-[300px] md:justify-center">About Us</a>
-					</div>
 				</section>
 
 				<!-- Expertise Section -->
-				<section class="mt-16">
-					<h2 class="text-center mb-12">What We Do</h2>
+				<section class="">
+					<h2 class="text-center mb-12 text-4xl font-light text-white">My Niche</h2>
 					<div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-						<Card>
-							<div slot="icon">🚀</div>
-							<div slot="title">Innovation</div>
-							<div slot="description">Pushing the boundaries of web technology with creative solutions and cutting-edge development approaches.</div>
-						</Card>
-						<Card>	
-							<div slot="icon">⚡</div>
-							<div slot="title">Performance</div>
-							<div slot="description">Building lightning-fast web applications that deliver smooth experiences even with complex functionality.</div>		
-						</Card>
-						<Card>
-							<div slot="icon">🎨</div>
-							<div slot="title">Design</div>
-							<div slot="description">Creating stunning, modern interfaces that combine aesthetics with exceptional user experience.</div>
-						</Card>
+						<Segment>
+							<div slot="title">One truth</div>
+							<div slot="description">I enforce a 100% TypeScript environment built on a single source of truth for types. This eliminates data duplication by validating types directly against backend contracts like OpenAPI and JSON Schema, ensuring frontend to backend consistency and preventing entire classes of integration bugs.</div>
+						</Segment>
+						<Segment>	
+							<div slot="title">Light touch</div>
+							<div slot="description">My design philosophy is minimal, clean, and slick. I prioritize speed and clarity, rejecting useless animations and overloaded interfaces that bog down the client. The result is a lightweight and intuitive UI that keeps the user focused and the experience seamless.
+
+							</div>		
+						</Segment>
+						<Segment>
+							<div slot="title">True balance</div>
+							<div slot="description">My 8 year experience on performance sensitive applications has taught me the importance of balancing optimization with long term code health. I focus on finding that sweet spot: a codebase that is fast, clean, and genuinely maintainable for your team.</div>
+						</Segment>
 					</div>
 				</section>
 
@@ -91,6 +80,4 @@ const CoolAnimation = ({ children }) => {
 };`}</code></pre>
 					</div>
 				</section>
-			</div>
-		</div>
 </AppWrapper>

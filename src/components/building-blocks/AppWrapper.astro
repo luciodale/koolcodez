@@ -21,7 +21,6 @@ const {
   ogImage,
   ogType = 'website',
   twitterCard = 'summary_large_image',
-  bodyClass = 'min-h-screen bg-base-100 text-base-content', // Default body styling
 } = Astro.props;
 
 // For Open Graph URL, use the current page's URL
@@ -42,7 +41,7 @@ const currentUrl = Astro.url.href;
       locale='en_GB'
     />
   </head>
-  <body class={bodyClass}>
+  <body class='min-h-screen bg-black'>
     <Navbar />
     <Layout>
       <slot />
