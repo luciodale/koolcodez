@@ -1,5 +1,6 @@
 ---
 import AppWrapper from '../components/building-blocks/AppWrapper.astro';
+import Card from '../components/building-blocks/Card.astro';
 import Segment from '../components/building-blocks/Segment.astro';
 import { SITE_DESCRIPTION, SITE_TITLE } from '../consts';
 ---
@@ -36,18 +37,21 @@ import { SITE_DESCRIPTION, SITE_TITLE } from '../consts';
 
 				<!-- Recent Work Section -->
 				<section>
-					<h2 class="text-center mb-12 text-4xl font-light text-white">Some open source</h2>
-					<div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-						<article class="card">
-							<h3>Creative Web Animations</h3>
-							<p class="text-[var(--color-text-muted)] mb-4">Exploring modern animation techniques to create engaging and performant web experiences.</p>
-							<a href="/blog" class="text-[var(--color-text-muted)] font-medium hover:text-[var(--color-accent)] transition-colors duration-150">Read more →</a>
-						</article>
-						<article class="card">
-							<h3>Modern Web Development</h3>
-							<p class="text-[var(--color-text-muted)] mb-4">Best practices and innovative approaches for building cutting-edge web applications.</p>
-							<a href="/blog" class="text-[var(--color-text-muted)] font-medium hover:text-[var(--color-accent)] transition-colors duration-150">Read more →</a>
-						</article>
+					<h2 class="text-center mb-12 text-4xl font-light text-white">
+						Some open source</h2>
+					<div class="flex flex-col items-center md:items-stretch md:flex-row justify-center gap-6 md:gap-12 md:px-12">
+						<Card repoUrl="https://github.com/luciodale/react-searchable-dropdown">
+							<div slot="title">react searchable dropdown</div>
+							<div slot="description">Single and multi selection, virtualized, new option creation, search, and more.</div>
+							<div slot="language">Typescript</div>
+							<div slot="stars">83</div>
+						</Card>
+					<Card repoUrl="https://github.com/luciodale/fork">
+							<div slot="title">fork</div>
+							<div slot="description">A headless Clojurescript form management library for Re-frame and Reagent.</div>
+							<div slot="language">Clojurescript</div>
+							<div slot="stars">227</div>
+						  </Card>
 					</div>
 				</section>
 
