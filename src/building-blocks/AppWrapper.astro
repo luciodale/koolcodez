@@ -1,19 +1,18 @@
 ---
-// src/layouts/AppWrapper.astro
+import { siteConfig } from '../config/site';
 import AppHead from './AppHead.astro';
 import Footer from './Footer.astro';
 import Layout from './Layout.astro';
 import Navbar from './Navbar.astro';
 
-interface Props {
-  // SEO Props
-  title: string; // Specific page title, defaults to SITE_TITLE
-  description: string; // Specific page description, defaults to SITE_DESCRIPTION
-  ogImage?: string; // Full URL for Open Graph image for the page
-  ogType?: string; // e.g., 'website', 'article'
-  twitterCard?: 'summary' | 'summary_large_image' | 'app' | 'player'; // Twitter card type
+type Props = {
+  title: string;
+  description: string;
+  ogImage?: string;
+  ogType?: 'website' | 'article' | 'profile';
+  twitterCard?: 'summary' | 'summary_large_image' | 'app' | 'player';
   fixedFooter?: boolean;
-}
+};
 
 const {
   title,
@@ -24,7 +23,6 @@ const {
   fixedFooter = false,
 } = Astro.props;
 
-// For Open Graph URL, use the current page's URL
 const currentUrl = Astro.url.href;
 ---
 
@@ -38,7 +36,7 @@ const currentUrl = Astro.url.href;
       ogType={ogType}
       twitterCard={twitterCard}
       canonicalUrl={currentUrl}
-      siteName="Kool Codez"
+      siteName={siteConfig.title}
       locale='en_GB'
     />
   </head>

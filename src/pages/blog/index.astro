@@ -3,14 +3,14 @@ import { getCollection } from 'astro:content';
 import AppWrapper from '../../building-blocks/AppWrapper.astro';
 import BlogCardWithImage from '../../components/BlogCardWithImage.astro';
 import SectionHeading from '../../components/SectionHeading.astro';
-import { SITE_DESCRIPTION, SITE_TITLE } from '../../consts';
+import { siteConfig } from '../../config/site';
 
 const posts = (await getCollection('blog')).sort(
 	(a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
 );
 ---
 
-<AppWrapper title={`Blog - ${SITE_TITLE}`} description={SITE_DESCRIPTION}>
+<AppWrapper title={`Blog - ${siteConfig.title}`} description={siteConfig.description}>
 	<!-- Hero Section -->
 	<section class="text-center max-w-4xl mx-auto">
 		<h1 class="mb-4">Blog</h1>

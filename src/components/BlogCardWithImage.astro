@@ -1,11 +1,11 @@
 ---
-import { formatDate } from '../utils/date';
+import { formatDate } from '../utils';
 
-export interface Props {
+export type Props = {
 	slug: string;
 	date: Date;
 	imageUrl: string;
-}
+};
 
 const { slug, date, imageUrl } = Astro.props;
 ---

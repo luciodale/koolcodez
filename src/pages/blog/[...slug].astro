@@ -1,8 +1,8 @@
 ---
 import { type CollectionEntry, getCollection, render } from 'astro:content';
+import { siteConfig } from '../../config/site';
 import AppWrapper from '../../building-blocks/AppWrapper.astro';
-import { SITE_TITLE } from '../../consts';
-import { formatDate } from '../../utils/date';
+import { formatDate } from '../../utils';
 
 export async function getStaticPaths() {
 	const posts = await getCollection('blog');
@@ -17,7 +17,7 @@ const post = Astro.props;
 const { Content } = await render(post);
 ---
 
-<AppWrapper title={`${post.data.title} - ${SITE_TITLE}`} description={post.data.description}>
+<AppWrapper title={`${post.data.title} - ${siteConfig.title}`} description={post.data.description}>
 	<article class="max-w-4xl mx-auto px-6 py-16">
 		<header class="mb-12">
 			{post.data.heroImage && (

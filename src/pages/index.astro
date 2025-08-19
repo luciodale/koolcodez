@@ -5,7 +5,7 @@ import BlogCard from '../components/BlogCard.astro';
 import OpenSourceCard from '../components/OpenSourceCard.astro';
 import SectionHeading from '../components/SectionHeading.astro';
 import Segment from '../components/Segment.astro';
-import { SITE_DESCRIPTION, SITE_TITLE } from '../consts';
+import { siteConfig } from '../config/site';
 
 // Get the last 3 blog posts
 const posts = await getCollection('blog');
@@ -13,17 +13,17 @@ const sortedPosts = posts.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDa
 const recentPosts = sortedPosts.slice(0, 3);
 ---
 
-<AppWrapper title={SITE_TITLE} description={SITE_DESCRIPTION}>
+<AppWrapper title={siteConfig.title} description={siteConfig.description}>
 				<!-- Hero Section -->
-				<section class="text-center  max-w-4xl mx-auto">
-						<img src="/kool-codez-logo.svg" alt="Kool Codez" class="max-w-md mx-auto" />
-					<p class="text-xl mx-auto max-w-xl pt-6">
+				<section class="text-center max-w-4xl mx-auto">
+						<img src="/kool-codez-logo.svg" alt={siteConfig.title} class="max-w-md mx-auto" />
+					<p class="text-xl mx-auto max-w-xl pt-6 text-white">
 						I craft fast, fluid interfaces built on a core of clean, stable, and genuinely maintainable code.
 					</p>
 				</section>
 
 				<!-- Expertise Section -->
-				<section>
+				<section class="py-8 md:py-12">
 					<SectionHeading>My niche</SectionHeading>
 					<div class="grid grid-cols-1 lg:grid-cols-3 gap-18 md:px-6">
 						<Segment>
@@ -43,7 +43,7 @@ const recentPosts = sortedPosts.slice(0, 3);
 					</div>
 				</section>
 
-				<section>
+				<section class="py-8 md:py-12">
 					<SectionHeading>Some open source</SectionHeading>
 					<div class="flex flex-col items-center md:items-stretch md:flex-row justify-center gap-6 md:gap-12 md:px-12">
 						<OpenSourceCard repoUrl="https://github.com/luciodale/react-searchable-dropdown">
@@ -62,7 +62,7 @@ const recentPosts = sortedPosts.slice(0, 3);
 				</section>
 
 				<!-- Blog Section -->
-				<section>
+				<section class="py-8 md:py-12">
 					<SectionHeading>Latest articles</SectionHeading>
 					<div class="flex flex-col items-center md:flex-row md:flex-wrap justify-center gap-6 md:gap-12 md:px-12">
 						{recentPosts.map((post) => (

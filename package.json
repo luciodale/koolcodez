@@ -1,8 +1,8 @@
 {
-  "name": "pixel-diffing",
+  "name": "koolcodez",
   "type": "module",
   "version": "0.0.1",
-  "description": "Personal website and blog for Pixel Diffing - Senior Frontend Engineer",
+  "description": "Personal website and blog for Kool Codez",
   "scripts": {
     "dev": "astro dev",
     "build": "astro build",

@@ -1,5 +1,5 @@
 ---
-import { NAVBAR_LINKS } from '../consts';
+import { siteConfig } from '../config/site';
 import NavbarLink from './NavbarLink.astro';
 ---
 
@@ -10,7 +10,7 @@ import NavbarLink from './NavbarLink.astro';
           <img src="/kool-codez-inline-logo.svg" alt="Kool Codez" class="w-[200px] hover:opacity-90" />
         </a>
         <nav class="flex gap-4 md:gap-8 items-center">
-            {NAVBAR_LINKS.map((link) => (
+            {siteConfig.navigation.map((link) => (
                 <NavbarLink href={link.href}>{link.name}</NavbarLink>
             ))}
         </nav>

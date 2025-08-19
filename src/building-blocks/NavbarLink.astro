@@ -1,12 +1,13 @@
 ---
+import { isActivePath } from '../utils';
 
-interface Props {
+type Props = {
     href: string;
-}
+};
 
 const { href } = Astro.props;
 const currentPath = Astro.url.pathname;
-const isActive = currentPath === href || (href !== '/' && currentPath.startsWith(href));
+const isActive = isActivePath(currentPath, href);
 ---
 
 <a href={href} class={`font-medium transition-colors duration-150 ${isActive ? 'text-accent' : 'text-white hover:text-accent'}`}>
