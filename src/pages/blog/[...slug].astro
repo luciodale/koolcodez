@@ -1,6 +1,8 @@
 ---
 import { type CollectionEntry, getCollection, render } from 'astro:content';
-import BlogPost from '../../layouts/BlogPost.astro';
+import AppWrapper from '../../building-blocks/AppWrapper.astro';
+import { SITE_TITLE } from '../../consts';
+import { formatDate } from '../../utils/date';
 
 export async function getStaticPaths() {
 	const posts = await getCollection('blog');
@@ -15,6 +17,27 @@ const post = Astro.props;
 const { Content } = await render(post);
 ---
 
-<BlogPost {...post.data}>
-	<Content />
-</BlogPost>
+<AppWrapper title={`${post.data.title} - ${SITE_TITLE}`} description={post.data.description}>
+	<article class="max-w-4xl mx-auto px-6 py-16">
+		<header class="mb-12">
+			{post.data.heroImage && (
+				<div class="mb-8 rounded-lg overflow-hidden">
+					<img 
+						src={post.data.heroImage.src} 
+						alt="" 
+						class="w-full h-64 object-cover" 
+					/>
+				</div>
+			)}
+			<h1 class="text-4xl font-bold mb-4">{post.data.title}</h1>
+			<p class="text-xl text-white/70 mb-4">{post.data.description}</p>
+			<time class="text-sm text-white/50 font-mono block mt-auto">
+				{formatDate(post.data.pubDate)}
+			</time>
+		</header>
+		
+		<div class="prose prose-invert">
+			<Content />
+		</div>
+	</article>
+</AppWrapper>

@@ -1,0 +1,36 @@
+---
+import { formatDate } from '../utils/date';
+
+export interface Props {
+	slug: string;
+	date: Date;
+	imageUrl: string;
+}
+
+const { slug, date, imageUrl } = Astro.props;
+---
+
+<article class="group min-h-96 md:h-96 bg-white/5 border border-white/10 rounded-lg overflow-hidden">
+	<a href={`/blog/${slug}`} class="flex flex-col justify-between h-full">
+			<div class="w-full h-1/2 shrink-0">
+				<img 
+					src={imageUrl} 
+					alt="" 
+					class="w-full h-full object-cover" 
+				/>
+			</div>
+		<div class="flex flex-col justify-between h-1/2 md:p-6 p-4">
+			<div>
+				<h3 class="text-lg font-medium text-white group-hover:text-accent transition-colors duration-150 mb-2">
+					<slot name="title" />
+				</h3>
+				<div class="line-clamp-3 leading-relaxed text-white/70">
+					<slot name="description" />
+				</div>
+			</div>
+			<time class="text-xs text-white/50 font-mono block mt-auto">
+				{formatDate(date)}
+			</time>
+		</div>
+	</a>
+</article>

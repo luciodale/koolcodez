@@ -4,6 +4,7 @@
 */
 
 @import "tailwindcss";
+@plugin "@tailwindcss/typography";
 
 @theme {
   /* Core Colors - Kool Codez brand palette */

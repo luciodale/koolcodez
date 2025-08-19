@@ -1,60 +1,38 @@
 ---
-import { Image } from 'astro:assets';
 import { getCollection } from 'astro:content';
-import BaseHead from '../../components/BaseHead.astro';
-import Footer from '../../components/Footer.astro';
-import FormattedDate from '../../components/FormattedDate.astro';
-import Header from '../../components/Header.astro';
+import AppWrapper from '../../building-blocks/AppWrapper.astro';
+import BlogCardWithImage from '../../components/BlogCardWithImage.astro';
+import SectionHeading from '../../components/SectionHeading.astro';
 import { SITE_DESCRIPTION, SITE_TITLE } from '../../consts';
 
 const posts = (await getCollection('blog')).sort(
-	(a: any, b: any) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
+	(a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
 );
 ---
 
-<!doctype html>
-<html lang="en">
-	<head>
-		<BaseHead title={`Blog - ${SITE_TITLE}`} description={SITE_DESCRIPTION} />
-		
-	</head>
-	<body>
-		<Header />
-		<main class="min-h-[calc(100vh-200px)] py-16">
-			<div class="max-w-7xl mx-auto px-6">
-				<header class="text-center mb-16 animate-[fadeIn_0.6s_ease-out]">
-					<h1 class="mb-4">Blog</h1>
-					<p class="text-xl text-[var(--color-text-muted)] font-normal">Insights on creative web development, modern technologies, and innovative digital experiences.</p>
-				</header>
+<AppWrapper title={`Blog - ${SITE_TITLE}`} description={SITE_DESCRIPTION}>
+	<!-- Hero Section -->
+	<section class="text-center max-w-4xl mx-auto">
+		<h1 class="mb-4">Blog</h1>
+		<p class="text-xl mx-auto max-w-xl pt-6">
+			Insights on creative web development, modern technologies, and innovative digital experiences.
+		</p>
+	</section>
 
-				<section>
-					<div class="grid gap-8 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
-						{
-							posts.map((post: any) => (
-								<article class="bg-[var(--color-surface)] border border-[var(--color-border)] rounded-xl overflow-hidden transition-all duration-250 hover:-translate-y-2 hover:shadow-lg hover:border-[var(--color-accent)]">
-									<a href={`/blog/${post.id}/`} class="block text-decoration-none text-inherit">
-										{post.data.heroImage && (
-											<div class="w-full h-48 overflow-hidden">
-												<Image width={400} height={200} src={post.data.heroImage} alt="" class="w-full h-full object-cover transition-transform duration-250 group-hover:scale-105" />
-											</div>
-										)}
-										<div class="p-6 md:p-4">
-											<h2 class="text-xl mb-4 text-[var(--color-text)] leading-tight">{post.data.title}</h2>
-											<p class="text-[var(--color-text-muted)] mb-4 leading-relaxed text-sm">{post.data.description}</p>
-											<div class="flex items-center gap-4">
-												<time class="text-sm text-[var(--color-text-light)] font-mono">
-													<FormattedDate date={post.data.pubDate} />
-												</time>
-											</div>
-										</div>
-									</a>
-								</article>
-							))
-						}
-					</div>
-				</section>
-			</div>
-		</main>
-		<Footer />
-	</body>
-</html>
+	<!-- Blog Posts Section -->
+	<section>
+		<SectionHeading>All articles</SectionHeading>
+		<div class="grid gap-8 grid-cols-1 md:grid-cols-2 lg:grid-cols-3 md:px-12">
+			{posts.map((post) => (
+				<BlogCardWithImage 
+					slug={post.id} 
+					date={post.data.pubDate}
+					imageUrl={post.data.heroImage.src}
+				>
+					<div slot="title">{post.data.title}</div>
+					<Fragment slot="description">{post.data.description}</Fragment>
+				</BlogCardWithImage>
+			))}
+		</div>
+	</section>
+</AppWrapper>
