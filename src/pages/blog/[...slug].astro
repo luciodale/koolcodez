@@ -1,7 +1,7 @@
 ---
 import { type CollectionEntry, getCollection, render } from 'astro:content';
-import { siteConfig } from '../../config/site';
 import AppWrapper from '../../building-blocks/AppWrapper.astro';
+import { siteConfig } from '../../config/site';
 import { formatDate } from '../../utils';
 
 export async function getStaticPaths() {
@@ -25,7 +25,7 @@ const { Content } = await render(post);
 					<img 
 						src={post.data.heroImage.src} 
 						alt="" 
-						class="w-full h-64 object-cover" 
+						class="w-full h-80 object-cover" 
 					/>
 				</div>
 			)}
