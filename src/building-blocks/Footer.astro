@@ -29,7 +29,7 @@ const { fixed } = Astro.props;
         {NAVBAR_LINKS.slice(1).map((link) => (
           <a 
             href={link.href} 
-            class="text-white/70 font-medium hover:text-accent transition-colors duration-200 text-sm"
+            class="text-white/70 font-medium hover:text-accent transition-colors duration-150 text-sm"
           >
             {link.name}
           </a>
@@ -42,7 +42,7 @@ const { fixed } = Astro.props;
           href="https://github.com/luciodale" 
           target="_blank" 
           rel="noopener noreferrer"
-          class="transition-colors duration-200"
+          class="transition-colors duration-150"
         >
           <GithubIcon color="text-white/50 hover:text-accent transition-colors duration-150" />
         </a>

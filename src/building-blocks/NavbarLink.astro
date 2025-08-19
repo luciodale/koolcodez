@@ -9,6 +9,6 @@ const currentPath = Astro.url.pathname;
 const isActive = currentPath === href || (href !== '/' && currentPath.startsWith(href));
 ---
 
-<a href={href} class={`font-medium transition-colors duration-200 ${isActive ? 'text-accent' : 'text-white hover:text-accent'}`}>
+<a href={href} class={`font-medium transition-colors duration-150 ${isActive ? 'text-accent' : 'text-white hover:text-accent'}`}>
     <slot />
 </a>
