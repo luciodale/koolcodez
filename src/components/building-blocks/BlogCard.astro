@@ -1,0 +1,32 @@
+---
+export interface Props {
+	title: string;
+	description: string;
+	pubDate: Date;
+	slug: string;
+}
+
+const { title, description, pubDate, slug } = Astro.props;
+---
+
+<article class="group min-h-44 w-lg bg-white/5 border border-white/10 rounded-lg">
+	<a href={`/blog/${slug}`} class="md:p-6 p-4 h-full flex flex-col">
+		<div class="space-y-4 flex-1">
+			<div class="flex-1">
+				<h3 class="text-xl font-medium text-white group-hover:text-accent transition-colors duration-200 mb-2">
+					{title}
+				</h3>
+				<p class="text-white/70 text-sm leading-relaxed line-clamp-3">
+					{description}
+				</p>
+			</div>
+			<time class="text-xs text-white/50 font-mono block mt-auto">
+				{pubDate.toLocaleDateString('en-US', { 
+					year: 'numeric', 
+					month: 'short', 
+					day: 'numeric' 
+				})}
+			</time>
+		</div>
+	</a>
+</article>

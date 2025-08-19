@@ -1,8 +1,16 @@
 ---
+import { getCollection } from 'astro:content';
 import AppWrapper from '../components/building-blocks/AppWrapper.astro';
-import Card from '../components/building-blocks/Card.astro';
+import BlogCard from '../components/building-blocks/BlogCard.astro';
+import OpenSourceCard from '../components/building-blocks/OpenSourceCard.astro';
+import SectionHeading from '../components/building-blocks/SectionHeading.astro';
 import Segment from '../components/building-blocks/Segment.astro';
 import { SITE_DESCRIPTION, SITE_TITLE } from '../consts';
+
+// Get the last 3 blog posts
+const posts = await getCollection('blog');
+const sortedPosts = posts.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
+const recentPosts = sortedPosts.slice(0, 3);
 ---
 
 <AppWrapper title={SITE_TITLE} description={SITE_DESCRIPTION}>
@@ -15,8 +23,8 @@ import { SITE_DESCRIPTION, SITE_TITLE } from '../consts';
 				</section>
 
 				<!-- Expertise Section -->
-				<section >
-					<h2 class="text-center mb-12 text-4xl font-light text-white">My Niche</h2>
+				<section>
+					<SectionHeading>My Niche</SectionHeading>
 					<div class="grid grid-cols-1 lg:grid-cols-3 gap-18 md:px-6">
 						<Segment>
 							<div slot="title">One truth</div>
@@ -35,53 +43,37 @@ import { SITE_DESCRIPTION, SITE_TITLE } from '../consts';
 					</div>
 				</section>
 
-				<!-- Recent Work Section -->
 				<section>
-					<h2 class="text-center mb-12 text-4xl font-light text-white">
-						Some open source</h2>
+					<SectionHeading>Some open source</SectionHeading>
 					<div class="flex flex-col items-center md:items-stretch md:flex-row justify-center gap-6 md:gap-12 md:px-12">
-						<Card repoUrl="https://github.com/luciodale/react-searchable-dropdown">
+						<OpenSourceCard repoUrl="https://github.com/luciodale/react-searchable-dropdown">
 							<div slot="title">react searchable dropdown</div>
 							<div slot="description">Single and multi selection, virtualized, new option creation, search, and more.</div>
 							<div slot="language">Typescript</div>
 							<div slot="stars">83</div>
-						</Card>
-					<Card repoUrl="https://github.com/luciodale/fork">
+						</OpenSourceCard>
+					<OpenSourceCard repoUrl="https://github.com/luciodale/fork">
 							<div slot="title">fork</div>
 							<div slot="description">A headless Clojurescript form management library for Re-frame and Reagent.</div>
 							<div slot="language">Clojurescript</div>
 							<div slot="stars">227</div>
-						  </Card>
+						  </OpenSourceCard>
 					</div>
 				</section>
 
-				<!-- Code Example Section -->
-				<section class="mt-16">
-					<h2 class="text-center mb-12">Cool Code Examples</h2>
-					<div class="max-w-full overflow-x-auto rounded-lg bg-[var(--color-surface)] border border-[var(--color-border)]">
-						<pre class="m-0 border-none bg-none"><code>{`// Interactive animation with performance
-const CoolAnimation = ({ children }) => {
-  const [isVisible, setIsVisible] = useState(false);
-  
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => setIsVisible(entry.isIntersecting),
-      { threshold: 0.1 }
-    );
-    
-    return () => observer.disconnect();
-  }, []);
-
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 50 }}
-      animate={isVisible ? { opacity: 1, y: 0 } : {}}
-      transition={{ duration: 0.6, ease: "easeOut" }}
-    >
-      {children}
-    </motion.div>
-  );
-};`}</code></pre>
+				<!-- Blog Section -->
+				<section>
+					<SectionHeading>Latest articles</SectionHeading>
+					<div class="flex flex-col items-center md:flex-row md:flex-wrap justify-center gap-6 md:gap-12 md:px-12">
+						{recentPosts.map((post) => (
+							<BlogCard
+								title={post.data.title}
+								description={post.data.description}
+								pubDate={post.data.pubDate}
+								slug={post.id}
+							/>
+						))}
 					</div>
 				</section>
+				
 </AppWrapper>
