@@ -5,8 +5,10 @@ interface Props {
 }
 
 const { href } = Astro.props;
+const currentPath = Astro.url.pathname;
+const isActive = currentPath === href || (href !== '/' && currentPath.startsWith(href));
 ---
 
-<a href={href} class="text-white font-medium hover:text-accent">
+<a href={href} class={`font-medium transition-colors duration-200 ${isActive ? 'text-accent' : 'text-white hover:text-accent'}`}>
     <slot />
 </a>

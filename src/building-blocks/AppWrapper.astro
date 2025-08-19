@@ -12,6 +12,7 @@ interface Props {
   ogImage?: string; // Full URL for Open Graph image for the page
   ogType?: string; // e.g., 'website', 'article'
   twitterCard?: 'summary' | 'summary_large_image' | 'app' | 'player'; // Twitter card type
+  fixedFooter?: boolean;
 }
 
 const {
@@ -20,6 +21,7 @@ const {
   ogImage,
   ogType = 'website',
   twitterCard = 'summary_large_image',
+  fixedFooter = false,
 } = Astro.props;
 
 // For Open Graph URL, use the current page's URL
@@ -45,6 +47,6 @@ const currentUrl = Astro.url.href;
     <Layout>
       <slot />
     </Layout>
-    <Footer />
+    <Footer fixed={fixedFooter} />
   </body>
 </html>

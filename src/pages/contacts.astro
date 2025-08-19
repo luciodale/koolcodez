@@ -1,0 +1,56 @@
+---
+import AppWrapper from '../building-blocks/AppWrapper.astro';
+import { SITE_TITLE } from '../consts';
+---
+
+<AppWrapper fixedFooter title={`Contact - ${SITE_TITLE}`} description="Get in touch with Kool Codez for creative web development projects and collaborations.">
+
+	<!-- Contact Links -->
+	<section class="max-w-lg mx-auto pt-20 flex items-center justify-center">
+		<div class="space-y-8">
+			<!-- Email Section -->
+			<div class="text-center">
+				<div class="mb-4">
+					<span class="text-white/30 text-sm font-mono">Let's build something kool</span>
+				</div>
+				<a 
+					href="mailto:lucio.dalessa@gmail.com?subject=Project Inquiry" 
+					class="block text-lg md:text-2xl text-white/70 hover:text-white transition-colors duration-200 font-mono"
+				>
+					lucio.dalessa@gmail.com
+				</a>
+			</div>
+			
+			<!-- Divider -->
+			<div class="flex items-center justify-center">
+				<div class="flex-1 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent"></div>
+				<div class="px-4 text-white/20 text-xs font-mono">or</div>
+				<div class="flex-1 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent"></div>
+			</div>
+			
+			<!-- Social Links -->
+			<div class="flex justify-center gap-12">
+				<a 
+					href="https://github.com/luciodale" 
+					target="_blank" 
+					rel="noopener noreferrer"
+					class="group relative"
+				>
+					<span class="text-white/50 group-hover:text-accent transition-colors duration-300 font-mono text-sm">
+						GitHub
+					</span>
+				</a>
+				<a 
+					href="https://www.linkedin.com/in/lucio-d-alessandro-38639bb6/" 
+					target="_blank" 
+					rel="noopener noreferrer"
+					class="group relative"
+				>
+					<span class="text-white/50 group-hover:text-accent transition-colors duration-300 font-mono text-sm">
+						LinkedIn
+					</span>
+				</a>
+			</div>
+		</div>
+	</section>
+</AppWrapper>

@@ -1,17 +1,18 @@
 ---
+import { NAVBAR_LINKS } from '../consts';
 import NavbarLink from './NavbarLink.astro';
 ---
 
-<header class="sticky mb-10 top-0 z-50 border-b border-accent bg-black/40 backdrop-blur-md">
+<header class="sticky top-0 z-50 border-b border-accent bg-black/40 backdrop-blur-md">
     <div class="max-w-7xl mx-auto px-6">    
       <div class="flex flex-col md:flex-row gap-2 items-center justify-between py-4 md:py-6">
         <a href="/" class="text-xl font-bold text-white hover:text-accent">
-          <img src="/kool-codez-text.svg" alt="Kool Codez" class="w-[200px] hover:opacity-90" />
+          <img src="/kool-codez-inline-logo.svg" alt="Kool Codez" class="w-[200px] hover:opacity-90" />
         </a>
         <nav class="flex gap-4 md:gap-8 items-center">
-            <NavbarLink href="/">Home</NavbarLink>
-            <NavbarLink href="/blog">Blog</NavbarLink>
-            <NavbarLink href="/about">About</NavbarLink>
+            {NAVBAR_LINKS.map((link) => (
+                <NavbarLink href={link.href}>{link.name}</NavbarLink>
+            ))}
         </nav>
       </div>
 </div>
