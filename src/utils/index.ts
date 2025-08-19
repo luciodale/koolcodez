@@ -1,16 +1,15 @@
-// Re-export all utility functions
-export { formatDate } from './date';
+export function formatDate(date: Date): string {
+	return date.toLocaleDateString('en-US', { 
+		year: 'numeric', 
+		month: 'short', 
+		day: 'numeric' 
+	});
+}
 
-/**
- * Utility function to check if a path is active
- */
 export function isActivePath(currentPath: string, href: string): boolean {
   return currentPath === href || (href !== '/' && currentPath.startsWith(href));
 }
 
-/**
- * Utility function to get the current year
- */
 export function getCurrentYear(): number {
   return new Date().getFullYear();
 }
