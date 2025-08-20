@@ -1,20 +1,22 @@
 ---
+import { Image } from 'astro:assets';
 import { formatDate } from '../utils';
 
 export type Props = {
 	slug: string;
 	date: Date;
-	imageUrl: string;
+	heroImage: ImageMetadata;
 };
 
-const { slug, date, imageUrl } = Astro.props;
+const { slug, date, heroImage } = Astro.props;
 ---
 
 <article class="group min-h-96 md:h-96 bg-white/5 border border-white/10 rounded-lg overflow-hidden">
 	<a href={`/blog/${slug}`} class="flex flex-col justify-between h-full">
 			<div class="w-full h-1/2 shrink-0">
-				<img 
-					src={imageUrl} 
+				<Image 
+					width={500}
+					src={heroImage} 
 					alt="" 
 					class="w-full h-full object-cover" 
 				/>

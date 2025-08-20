@@ -1,4 +1,5 @@
 ---
+import { Image } from 'astro:assets';
 import { type CollectionEntry, getCollection, render } from 'astro:content';
 import AppWrapper from '../../building-blocks/AppWrapper.astro';
 import { siteConfig } from '../../config/site';
@@ -22,9 +23,10 @@ const { Content } = await render(post);
 		<header class="mb-12">
 			{post.data.heroImage && (
 				<div class="mb-8 rounded-lg overflow-hidden">
-					<img 
-						src={post.data.heroImage.src} 
+					<Image 
+						src={post.data.heroImage} 
 						alt="" 
+						width={1000}
 						class="w-full h-80 object-cover" 
 					/>
 				</div>

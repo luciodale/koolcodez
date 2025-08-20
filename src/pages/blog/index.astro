@@ -27,7 +27,7 @@ const posts = (await getCollection('blog')).sort(
 				<BlogCardWithImage 
 					slug={post.id} 
 					date={post.data.pubDate}
-					imageUrl={post.data.heroImage.src}
+					heroImage={post.data.heroImage}
 				>
 					<div slot="title">{post.data.title}</div>
 					<Fragment slot="description">{post.data.description}</Fragment>
