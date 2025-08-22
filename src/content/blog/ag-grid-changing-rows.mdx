@@ -1,17 +1,822 @@
 ---
-title: 'Ag-Grid: updating rows gets tricky soon'
-description: 'How to orchestrate row updates with streaming data'
-pubDate: 'Aug 20 2025'
+title: 'Enterprise-Grade Trading Grids: A Technical Deep Dive'
+description: 'Build production-ready financial data grids that handle real-time market data, complex user interactions, and enterprise-scale requirements with confidence.'
+pubDate: 'Aug 22 2025'
 heroImage: '../../assets/hero-blog.webp'
 ---
 
-# The problem
+# Enterprise-Grade Trading Grids: A Technical Deep Dive
 
+Skip the technical details and jump straight to the [live demo](#).
+ 
+View the complete [repository](#)
 
-# The solution  
+Financial applications live and die by their grids. Whether displaying options, equities, FX rates, or risk metrics, most trading workflows ultimately boil down to rows of instruments updating in real-time. Traders demand instant visibility, quantitative analysts require reliable data structures, and product teams need solutions that scale without breaking under pressure.
 
+This article demonstrates how to build a robust, production-grade grid in React specifically designed for financial applications. We'll use Ag Grid as our foundation—chosen for its performance, flexibility, and comprehensive API, while maintaining full control over data flow and business logic. The central theme here is **orchestration**: keeping a complex system simple, maintainable, and confidence-inspiring.
 
+## The Foundation: Data Structure and Streaming
 
+### Understanding the Data Flow
 
+Our backend pushes market data over a WebSocket connection. Upon connection, you receive the complete options dataset. Subsequently, every message contains an array of options even when only a single row has changed or been added/removed. This uniform message structure allows us to treat the UI as a pure function of state, dramatically simplifying our mental model.
 
+Here's what we're displaying in our grid:
 
+| id | underlyingSymbol | bid | ask | strikePrice | expirationDate | optionType |
+| -- | ---------------- | --- | --- | ----------- | -------------- | ---------- |
+| 1  | AAPL             | 100 | 105 | 150         | 2025-01-01     | call       |
+
+### Type Definitions
+
+Strong typing is non-negotiable in today's modern applications. Here are our core data structures:
+
+```ts
+
+type StreamMessageType = "initial" | "update" | "add" | "remove";
+
+type StreamMessage = {
+	type: StreamMessageType;
+	data: Option[];
+};
+
+type Option = {
+  id: string;
+  underlyingSymbol: string;
+  bid: number;
+  ask: number;
+  strikePrice: number;
+  expirationDate: string;
+  optionType: "call" | "put";
+};
+```
+
+A typical update message looks like this:
+
+```ts
+{
+  type: "update",
+  data: [
+    { 
+        id: "1", 
+        underlyingSymbol: "AAPL", 
+        bid: 100, 
+        ask: 105, 
+        strikePrice: 150, 
+        expirationDate: "2025-01-01", 
+        optionType: "call" 
+    }
+  ]
+}
+```
+
+### Managing the Data Stream
+
+We'll create a custom hook to handle the WebSocket connection and maintain synchronized local state. This approach keeps our data management logic isolated and testable:
+
+```ts
+export function useOptionsStream() {
+	const [options, setOptions] = useState<Option[]>([]);
+	const [isConnected, setIsConnected] = useState(false);
+	const [error, setError] = useState<string | null>(null);
+
+	useEffect(() => {
+		const socket = new WebSocket(WEBSOCKET_URL);
+
+		socket.onopen = () => {
+			setIsConnected(true);
+			setError(null);
+			console.log("WebSocket connected");
+		};
+
+		socket.onmessage = (event) => {
+	
+			try {
+				const message: StreamMessage = JSON.parse(event.data);
+
+				switch (message.type) {
+					case "initial":
+						setOptions(handleInitialData(message.data));
+						break;
+					case "update":
+						setOptions((prevOptions) =>
+							handleUpdateData(prevOptions, message.data),
+						);
+						break;
+					case "add":
+						setOptions((prevOptions) =>
+							handleAddData(prevOptions, message.data),
+						);
+						break;
+					case "remove":
+						setOptions((prevOptions) =>
+							handleRemoveData(prevOptions, message.data),
+						);
+						break;
+					default:
+						console.warn(`Unknown message type: ${(message as any).type}`);
+				}
+			} catch (err) {
+				console.error("Failed to parse WebSocket data", err);
+				setError("Failed to parse WebSocket data");
+			}
+		};
+
+		socket.onerror = (event) => {
+			setIsConnected(false);
+			setError("WebSocket connection error");
+			console.error("WebSocket error:", event);
+		};
+
+		socket.onclose = () => {
+			setIsConnected(false);
+			setError("WebSocket connection closed");
+			console.log("WebSocket disconnected");
+		};
+
+		return () => {
+			socket.close();
+		};
+	}, []); 
+
+	return { options, isConnected, error };
+}
+```
+
+## Building the Grid Foundation
+
+### Basic Grid Setup
+
+With our data stream established, let's create the grid component. Ag Grid requires two essential properties: `rowData` (the rows) and `columnDefs` (the columns):
+
+```tsx
+const columnDefs = [
+    { field: 'id' },
+    { field: 'underlyingSymbol' },
+    { field: 'bid' },
+    { field: 'ask' },
+    { field: 'strikePrice' },
+    { field: 'expirationDate' },
+    { field: 'optionType' },
+];
+
+function FinancialGrid() {
+    const { options } = useOptionsStream();
+
+    return (
+        <AgGridReact rowData={options} columnDefs={columnDefs} />
+    );
+}
+```
+
+This basic implementation will render our data, but we immediately encounter a critical issue.
+
+### The Identity Crisis: Why Row Identity Matters
+
+**Identity is everything** in grids. Without stable row identity, passing a fresh array to `rowData` forces the grid to rebuild from scratch, destroying user selections, scroll positions, and any transient state. This creates an unacceptable user experience for traders who need to maintain context across rapid market updates.
+
+The solution is straightforward: tell Ag Grid how to identify rows:
+
+```tsx
+<AgGridReact
+  rowData={options}
+  columnDefs={columnDefs}
+  getRowId={(params) => params.data.id}
+/>
+```
+
+With proper identity in place, the grid can intelligently reconcile updates instead of tearing down and rebuilding the entire interface.
+
+## Adding User Interaction: Row Selection
+
+### Basic Selection Implementation
+
+A grid without selection capabilities is merely a display. Let's add the ability to select rows and access detailed information:
+
+```tsx
+function FinancialGrid() {
+    const { options } = useOptionsStream();
+    const [selectedId, setSelectedId] = useState<string>();
+
+    const mySelectedOption = options.find(o => o.id === selectedId);
+
+    return (
+        <>
+            <DoSomethingWithSelectedOption 
+                mySelectedOption={mySelectedOption} />
+            <AgGridReact 
+                rowData={options} 
+                columnDefs={columnDefs} 
+                getRowId={(params) => params.data.id}
+                onRowSelected={(e) => {
+                    if (e.node.selected) setSelectedId(e.data.id);
+                }}
+            />
+        </>
+    );
+}
+```
+
+This works for basic scenarios, but financial markets are dynamic. What happens when selected rows disappear due to market conditions or data updates? Currently, we'd lose the selection entirely, leaving users with stale references.
+
+## The Orchestrator Pattern: Managing Complexity
+
+### Centralized Change Management
+
+Handling all edge cases inevitably increases code complexity; there's no avoiding this reality. However, we can minimize the cognitive burden by centralizing our logic in a single, well defined location. This prevents the proliferation of scattered `useEffect` hooks that become difficult to maintain and reason about.
+
+We need a centralized orchestrator that processes all data changes and calls an arbitrary function we provide. This gives us a single point of control where we can implement any business logic required for each data update cycle:
+
+```tsx
+function FinancialGrid() {
+    const { options } = useOptionsStream();
+    const [selectedId, setSelectedId] = useState<string>();
+    const mySelectedOption = options.find(o => o.id === selectedId);
+
+    // Centralized grid data change handler 
+    // for side effects / edge cases
+	const handleGridDataChanges = useCallback(
+		({
+			newGridData,
+			updated,
+			deleted,
+			added,
+		}: {
+			newGridData: Option[];
+			updated: Option[];
+			deleted: Option[];
+			added: Option[];
+		}) => {
+			// Handle selection logic will go here!
+		},
+		[gridApi],
+	);
+
+    useGridDataManager({
+		options,
+		gridApi,
+		onGridDataChange: handleGridDataChanges,
+	});
+
+    return (
+        <>
+            <DoSomethingWithSelectedOption 
+                mySelectedOption={mySelectedOption} />
+            <AgGridReact 
+                rowData={options} 
+                columnDefs={columnDefs} 
+                getRowId={(params) => params.data.id}
+                onRowSelected={(e) => {
+                    if (e.node.selected) setSelectedId(e.data.id);
+                }}
+            />
+        </>
+    );
+}
+```
+
+### Robust Selection Management
+
+Now we can implement sophisticated selection logic that handles all the edge cases the grid demands:
+
+```ts
+export function useRowSelection() {
+	const [selectedRow, setSelectedRow] = useState<Option | null>(null);
+	const selectedRowRef = useRef<Option | null>(null);
+
+	// Keep ref in sync with state
+	// This ref is needed to access the current selectedRow value in handleSelection
+	// without creating a dependency that would cause stale closures and race conditions
+	// between handleRowSelected and handleSelection callbacks
+	selectedRowRef.current = selectedRow;
+
+	// Function to handle row selection from grid events
+	const handleRowSelected = (event: RowSelectedEvent<Option>) => {
+		if (event.node.isSelected()) {
+			setSelectedRow(event.data || null);
+		} else {
+			// Only clear selection if the deselected row is no longer in the grid
+			setSelectedRow((currentlySelected) => {
+				if (
+					currentlySelected &&
+					event.data &&
+					currentlySelected.id === event.data.id
+				) {
+					// Check if the row still exists in the grid
+					const rowStillExists = event.api.getRowNode(event.data.id);
+					if (!rowStillExists) {
+						console.log("Row removed from grid, clearing selection");
+						return null;
+					}
+				}
+				return currentlySelected;
+			});
+		}
+	};
+
+	// Function to restore selection when nothing is selected
+	const handleSelection = useCallback(
+		(
+			newGridData: Option[],
+			gridApi: GridApi | null,
+			savedSelectedRowId?: string,
+		) => {
+			// Only restore if we have data and grid API
+			if (newGridData.length > 0 && gridApi) {
+				// Check if there's already a selected row in the grid
+				const selectedNodes = gridApi.getSelectedNodes();
+				if (selectedNodes.length > 0) {
+					// Update our state to match the grid's selection
+					const selectedData = selectedNodes[0].data;
+					if (selectedData && selectedData !== selectedRowRef.current) {
+						setSelectedRow(selectedData);
+					}
+					return;
+				}
+
+				// Try to restore saved selection first
+				const savedRow = newGridData.find(
+					(option) => option.id === savedSelectedRowId,
+				);
+
+				if (savedRow) {
+					// Restore saved selection
+					const savedRowNode = gridApi.getRowNode(savedRow.id);
+					if (savedRowNode) {
+						savedRowNode.setSelected(true);
+						setSelectedRow(savedRow);
+						console.log("Restored saved selection:", savedRow.id);
+					}
+				} else {
+					// Fallback to first row if saved selection not found
+					const firstRowNode = gridApi.getRowNode(newGridData[0].id);
+					if (firstRowNode) {
+						firstRowNode.setSelected(true);
+						setSelectedRow(newGridData[0]);
+						console.log("Defaulted to first row:", newGridData[0].id);
+					}
+				}
+			}
+		},
+		[], // Remove selectedRow from dependencies to prevent stale closures
+	);
+
+	return {
+		selectedRow,
+		handleRowSelected,
+		handleSelection,
+	};
+}
+```
+
+This centralized approach keeps all selection logic in one place, making it easier to understand, test, and maintain. Our main component becomes much cleaner:
+
+```tsx
+function FinancialGrid() {
+    const { options } = useOptionsStream();
+    const { selectedRow, handleRowSelected, handleSelection } = useRowSelection();
+
+    // Centralized grid data change handler for side effects / edge cases
+	const handleGridDataChanges = useCallback(
+		({
+			newGridData,
+			updated,
+			deleted,
+			added,
+		}: {
+			newGridData: Option[];
+			updated: Option[];
+			deleted: Option[];
+			added: Option[];
+		}) => {
+			handleSelection(newGridData, gridApi, SAVED_SELECTED_ROW_ID);
+		},
+		[gridApi, handleSelection],
+	);
+
+    useGridDataManager({
+		options,
+		gridApi,
+		onGridDataChange: handleGridDataChanges,
+	});
+
+    return (
+        <>
+            <DoSomethingWithSelectedOption mySelectedOption={selectedRow} />
+            <AgGridReact 
+                rowData={options} 
+                columnDefs={columnDefs} 
+                getRowId={(params) => params.data.id}
+                suppressCellFocus
+                rowSelection="single"
+                onRowSelected={handleRowSelected}
+            />
+        </>
+    );
+}
+```
+
+## Advanced Features: In-Grid Editing
+
+### Scaling the Pattern: Edit Management
+
+Let's test whether our orchestrator pattern scales by adding in-grid editing capabilities. Traders need to modify data directly in the grid, and we must handle several requirements:
+
+- Capture edits in managed state
+- Ensure edits override streaming updates when they conflict
+- Clean up edits when rows are removed from the market
+- Broadcast edits to other traders upon save
+
+Following our established pattern, we'll create a dedicated hook for edit management:
+
+```ts
+export type EditedValues = Record<string, Partial<Option>>;
+
+export function useEditedValues() {
+	const [editedValues, setEditedValues] = useState<EditedValues>({});
+
+	// Function to update edited values
+	const updateEditedValue = (
+		optionId: string,
+		field: keyof Option,
+		value: string | number,
+	) => {
+		setEditedValues((prev) => ({
+			...prev,
+			[optionId]: {
+				...prev[optionId],
+				[field]: value,
+			},
+		}));
+	};
+
+	// Function to clear all edited values
+	const clearAllEditedValues = () => {
+		setEditedValues({});
+	};
+
+	// Wrapper function to handle edit cleanup for grid data changes
+	const handleClearEdits = useCallback((deletedRows: Option[]) => {
+		if (deletedRows.length > 0) {
+			const deletedIds = deletedRows.map((row) => row.id);
+			setEditedValues((prev) => {
+				const newEditedValues = { ...prev };
+				deletedIds.forEach((id) => {
+					delete newEditedValues[id];
+				});
+				return newEditedValues;
+			});
+		}
+	}, []);
+
+	// Function to rebase edited values on socket data
+	const rebaseOptionsWithEdits = useMemo(
+		() =>
+			(socketOptions: Option[]): Option[] => {
+				return socketOptions.map((option) => {
+					const edits = editedValues[option.id];
+					if (edits) {
+						return {
+							...option,
+							...edits,
+						};
+					}
+					return option;
+				});
+			},
+		[editedValues],
+	);
+
+    const onSaveEditedData = useCallback(() => {
+        // send the edits to other traders
+        // fetch(...)
+    }, [editedValues]);
+
+	return {
+		editedValues,
+		updateEditedValue,
+		clearAllEditedValues,
+		handleClearEdits,
+		rebaseOptionsWithEdits,
+        onSaveEditedData,
+	};
+}
+```
+
+### Integrating Edit Functionality
+
+Now we wire the edit functionality into our main component, maintaining the same clean orchestration pattern:
+
+```tsx
+function FinancialGrid() {
+    const { options: socketOptions } = useOptionsStream();
+    const { selectedRow, handleRowSelected, handleSelection } = useRowSelection();
+    
+    const {
+		rebaseOptionsWithEdits,
+		updateEditedValue,
+		handleClearEdits,
+		editedValues,
+        onSaveEditedData,
+	} = useEditedValues();
+
+    const options = rebaseOptionsWithEdits(socketOptions);
+
+    // Centralized grid data change handler for side effects / edge cases
+	const handleGridDataChanges = useCallback(
+		({
+			newGridData,
+			updated,
+			deleted,
+			added,
+		}: {
+			newGridData: Option[];
+			updated: Option[];
+			deleted: Option[];
+			added: Option[];
+		}) => {
+			handleSelection(newGridData, gridApi, SAVED_SELECTED_ROW_ID);
+			handleClearEdits(deleted);
+		},
+		[gridApi, handleSelection, handleClearEdits],
+	);
+
+    useGridDataManager({
+		options,
+		gridApi,
+		onGridDataChange: handleGridDataChanges,
+	});
+
+    return (
+        <>
+            <DoSomethingWithSelectedOption mySelectedOption={selectedRow} />
+            <EditedValuesDisplay editedValues={editedValues} onSaveEditedData={onSaveEditedData} />
+            <AgGridReact 
+                rowData={options} 
+                columnDefs={columnDefs} 
+                getRowId={(params) => params.data.id}
+                suppressCellFocus
+                rowSelection="single"
+                onRowSelected={handleRowSelected}
+                readOnlyEdit={true}
+                onCellEditRequest={handleCellEditRequest}
+            />
+        </>
+    );
+}
+```
+
+To enable editing on specific columns, we simply add the `editable` property:
+
+```ts
+const columnDefs = [
+    { field: 'id' },
+    { field: 'underlyingSymbol', editable: true },
+    { field: 'bid', editable: true },
+    { field: 'ask', editable: true },
+    { field: 'strikePrice', editable: true },
+    { field: 'expirationDate', editable: true },
+    { field: 'optionType', editable: true },
+];
+```
+
+## Audit Trail: Historical Update Tracking
+
+### Maintaining Market Data History
+
+Financial applications often require comprehensive audit trails. Let's add historical update tracking to monitor all streaming data changes chronologically. This feature helps with compliance, debugging, and market analysis.
+
+Following our established pattern, we create another focused hook:
+
+```ts
+export type StreamingUpdate = {
+	id: string;
+	timestamp: string;
+	type: StreamMessageType;
+	rowId: string;
+};
+
+export function useHistoricalUpdates() {
+	const [updates, setUpdates] = useState<StreamingUpdate[]>([]);
+
+	const addUpdate = useCallback(
+		(update: Omit<StreamingUpdate, "id" | "timestamp">) => {
+			const newUpdate: StreamingUpdate = {
+				...update,
+				id: crypto.randomUUID(),
+				timestamp: new Date().toLocaleTimeString(),
+			};
+
+			setUpdates((prev) => {
+				const newUpdates = [newUpdate, ...prev];
+				// Keep only the last 100 updates to prevent memory leaks
+				return newUpdates.slice(0, 100);
+			});
+		},
+		[],
+	);
+
+	const trackHistoricalUpdates = useCallback(
+		({
+			added,
+			deleted,
+			updated,
+		}: {
+			added: Option[];
+			deleted: Option[];
+			updated: Option[];
+		}) => {
+			// Track historical updates
+			if (added.length > 0) {
+				addUpdate({
+					type: "add",
+					rowId: added.map((option) => option.id).join(","),
+				});
+			}
+			if (deleted.length > 0) {
+				addUpdate({
+					type: "remove",
+					rowId: deleted.map((option) => option.id).join(","),
+				});
+			}
+			if (updated.length > 0) {
+				addUpdate({
+					type: "update",
+					rowId: updated.map((option) => option.id).join(","),
+				});
+			}
+		},
+		[addUpdate],
+	);
+
+	const clearUpdates = useCallback(() => {
+		setUpdates([]);
+	}, []);
+
+	return {
+		updates,
+		addUpdate,
+		trackHistoricalUpdates,
+		clearUpdates,
+	};
+}
+```
+
+### Complete Integration
+
+Our main component now orchestrates all features seamlessly:
+
+```tsx
+function FinancialGrid() {
+    const { options: socketOptions } = useOptionsStream();
+    const { selectedRow, handleRowSelected, handleSelection } = useRowSelection();
+    
+    const {
+		rebaseOptionsWithEdits,
+		updateEditedValue,
+		handleClearEdits,
+		editedValues,
+        onSaveEditedData,
+	} = useEditedValues();
+
+    const { updates, trackHistoricalUpdates } = useHistoricalUpdates();
+
+    const options = rebaseOptionsWithEdits(socketOptions);
+
+    // Centralized grid data change handler for side effects / edge cases
+	const handleGridDataChanges = useCallback(
+		({
+			newGridData,
+			updated,
+			deleted,
+			added,
+		}: {
+			newGridData: Option[];
+			updated: Option[];
+			deleted: Option[];
+			added: Option[];
+		}) => {
+			handleSelection(newGridData, gridApi, SAVED_SELECTED_ROW_ID);
+			handleClearEdits(deleted);
+            trackHistoricalUpdates({ added, deleted, updated });
+		},
+		[gridApi, handleSelection, handleClearEdits, trackHistoricalUpdates],
+	);
+
+    useGridDataManager({
+		options,
+		gridApi,
+		onGridDataChange: handleGridDataChanges,
+	});
+
+    return (
+        <>
+            <DoSomethingWithSelectedOption
+				 mySelectedOption={selectedRow} />
+            <EditedValuesDisplay
+				 editedValues={editedValues} 
+				 onSaveEditedData={onSaveEditedData} />							
+            <StreamingHistoricalUpdates updates={updates} />
+            <AgGridReact 
+                rowData={options} 
+                columnDefs={columnDefs} 
+                getRowId={(params) => params.data.id}
+                suppressCellFocus
+                rowSelection="single"
+                onRowSelected={handleRowSelected}
+                readOnlyEdit={true}
+                onCellEditRequest={handleCellEditRequest}
+            />
+        </>
+    );
+}
+```
+
+## Visual Feedback: Styling Edited Cells
+
+### Context-Based Styling
+
+Visual feedback is crucial for traders to understand data state at a glance. We want to highlight edited cells to provide immediate visual confirmation of changes. However, we must avoid the anti-pattern of making `columnDefs` reactive to state changes, which would cause unnecessary re-renders.
+
+Instead, we use Ag Grid's context feature to pass data to styling callbacks:
+
+```tsx
+<AgGridReact
+  // ... other props
+  context={{ editedValues }}
+/>
+```
+
+### Implementing Cell Styling
+
+Now we can create a utility function and update our column definitions to highlight edited cells:
+
+```ts
+// Function to check if a cell is edited
+const getEditedCellClass = (params: CellClassParams<Option>) => {
+	const context = params.context;
+	const rowId = params.data?.id;
+	const field = params.column.getColId();
+
+	if (
+		rowId &&
+		context?.editedValues?.[rowId]?.[field] !== undefined
+	) {
+		return "edited-cell";
+	}
+	return "";
+};
+
+const columnDefs = [
+    { field: 'id' },
+    { field: 'underlyingSymbol', editable: true, cellClass: getEditedCellClass },
+    { field: 'bid', editable: true, cellClass: getEditedCellClass },
+    { field: 'ask', editable: true, cellClass: getEditedCellClass },
+    { field: 'strikePrice', editable: true, cellClass: getEditedCellClass },
+    { field: 'expirationDate', editable: true, cellClass: getEditedCellClass },
+    { field: 'optionType', editable: true, cellClass: getEditedCellClass },
+];
+```
+
+This approach provides immediate visual feedback while maintaining optimal performance characteristics.
+
+## Engineering Philosophy: Beyond Library Choice
+
+### The Core Principles
+
+The specific choice of library whether Ag Grid, React Table, or any other solution is secondary to the engineering approach we've demonstrated. What matters most is how we structure our problem-solving and architect our solutions. You could replace React's `useState` with Jotai, Zustand, or even Redux; the fundamental principles remain the same.
+
+The key insight is maintaining code understandability within the constraints of our implementation. We've achieved this through:
+
+- **Separation of concerns**: Each hook handles one specific domain
+- **Centralized orchestration**: All complex logic flows through predictable channels  
+- **Consistent patterns**: Every feature follows the same architectural approach
+- **Type safety**: Strong typing prevents entire classes of runtime errors
+
+### Testing and Maintainability
+
+This architectural approach dramatically simplifies testing. Each hook can be tested in isolation with clear inputs and outputs. The orchestrator pattern means we can verify complex interactions without spinning up the entire grid component. Mock data flows predictably through our system, making edge cases reproducible and debuggable.
+
+When requirements change, and they will in any real-world scenario, our modular approach allows surgical modifications without ripple effects across the codebase.
+
+## Conclusion
+
+We've built a sophisticated financial grid that handles real-time streaming data, user interactions, in-grid editing, and comprehensive audit trails. Despite the complexity of these features, our code remains organized and maintainable through consistent architectural patterns.
+
+The orchestrator pattern proves its worth by providing a single point of control for all data changes, while our hook-based architecture keeps concerns properly separated. This approach scales naturally as requirements grow, whether you're adding new data sources, implementing additional user interactions, or integrating with external systems.
+
+Most importantly, we've created a system that financial professionals can trust: one that handles edge cases gracefully, maintains data integrity, and provides the performance characteristics that trading applications demand.
+
+👉 [View the live demo](#) | [Explore the complete repository](#)
+
+*The principles demonstrated here apply beyond financial applications. Any complex, real-time data grid can benefit from this architectural approach, regardless of the specific libraries or frameworks you choose.*
+
+## Key Takeaways
+
+We've demonstrated how to build enterprise-grade financial grids through consistent architectural patterns. The orchestrator approach provides centralized control while maintaining modularity, making complex systems both powerful and maintainable.
+
+The specific technology choices—whether Ag Grid, React Table, or state management libraries—matter less than the underlying engineering principles. Focus on separation of concerns, type safety, and predictable data flow patterns that scale with your business requirements.
+
+Most importantly, this architecture handles the edge cases that financial applications demand: graceful handling of disappearing data, robust state management during rapid updates, and comprehensive audit trails that meet compliance requirements.
+
+👉 [View the live demo](#) | [Explore the complete repository](#)
