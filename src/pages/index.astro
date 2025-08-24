@@ -1,7 +1,7 @@
 ---
 import { getCollection } from 'astro:content';
 import AppWrapper from '../building-blocks/AppWrapper.astro';
-import BlogCard from '../components/BlogCard.astro';
+import BlogCardWithImage from '../components/BlogCardWithImage.astro';
 import OpenSourceCard from '../components/OpenSourceCard.astro';
 import SectionHeading from '../components/SectionHeading.astro';
 import Segment from '../components/Segment.astro';
@@ -64,12 +64,16 @@ const recentPosts = sortedPosts.slice(0, 3);
 				<!-- Blog Section -->
 				<section class="py-8 md:py-12">
 					<SectionHeading>Latest articles</SectionHeading>
-					<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8 max-w-6xl mx-auto md:px-6">
+					<div class="grid gap-8 grid-cols-1 md:grid-cols-2 lg:grid-cols-3 md:px-12">
 						{recentPosts.map((post) => (
-							<BlogCard slug={post.id} date={post.data.pubDate}>
+							<BlogCardWithImage 
+								slug={post.id} 
+								date={post.data.pubDate}
+								heroImage={post.data.heroImage}
+							>
 								<div slot="title">{post.data.title}</div>
 								<div slot="description">{post.data.description}</div>
-							</BlogCard>
+							</BlogCardWithImage>
 						))}
 					</div>
 				</section>
