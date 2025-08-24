@@ -7,7 +7,7 @@ heroImage: '../../assets/hero-blog.webp'
 
 # Enterprise-Grade Trading Grids: A Technical Deep Dive
 
-Skip the technical details and jump straight to the [live demo](#).
+Skip the technical details and jump straight to the [live demo](#)
  
 View the complete [repository](#)
 
@@ -402,7 +402,8 @@ function FinancialGrid() {
 
     return (
         <>
-            <DoSomethingWithSelectedOption mySelectedOption={selectedRow} />
+            <DoSomethingWithSelectedOption 
+                mySelectedOption={selectedRow} />
             <AgGridReact 
                 rowData={options} 
                 columnDefs={columnDefs} 
@@ -549,8 +550,11 @@ function FinancialGrid() {
 
     return (
         <>
-            <DoSomethingWithSelectedOption mySelectedOption={selectedRow} />
-            <EditedValuesDisplay editedValues={editedValues} onSaveEditedData={onSaveEditedData} />
+            <DoSomethingWithSelectedOption 
+                mySelectedOption={selectedRow} />
+            <EditedValuesDisplay 
+                editedValues={editedValues} 
+                onSaveEditedData={onSaveEditedData} />
             <AgGridReact 
                 rowData={options} 
                 columnDefs={columnDefs} 
@@ -712,10 +716,10 @@ function FinancialGrid() {
     return (
         <>
             <DoSomethingWithSelectedOption
-				 mySelectedOption={selectedRow} />
+				mySelectedOption={selectedRow} />
             <EditedValuesDisplay
-				 editedValues={editedValues} 
-				 onSaveEditedData={onSaveEditedData} />							
+				editedValues={editedValues} 
+				onSaveEditedData={onSaveEditedData} />							
             <StreamingHistoricalUpdates updates={updates} />
             <AgGridReact 
                 rowData={options} 
@@ -807,16 +811,6 @@ The orchestrator pattern proves its worth by providing a single point of control
 
 Most importantly, we've created a system that financial professionals can trust: one that handles edge cases gracefully, maintains data integrity, and provides the performance characteristics that trading applications demand.
 
-👉 [View the live demo](#) | [Explore the complete repository](#)
-
 *The principles demonstrated here apply beyond financial applications. Any complex, real-time data grid can benefit from this architectural approach, regardless of the specific libraries or frameworks you choose.*
 
-## Key Takeaways
-
-We've demonstrated how to build enterprise-grade financial grids through consistent architectural patterns. The orchestrator approach provides centralized control while maintaining modularity, making complex systems both powerful and maintainable.
-
-The specific technology choices—whether Ag Grid, React Table, or state management libraries—matter less than the underlying engineering principles. Focus on separation of concerns, type safety, and predictable data flow patterns that scale with your business requirements.
-
-Most importantly, this architecture handles the edge cases that financial applications demand: graceful handling of disappearing data, robust state management during rapid updates, and comprehensive audit trails that meet compliance requirements.
-
-👉 [View the live demo](#) | [Explore the complete repository](#)
+👉 View the [live demo](#) | Explore the [repository](#)
