@@ -13,7 +13,7 @@ const { slug, date, heroImage } = Astro.props;
 
 <article class="group min-h-96 md:h-96 bg-white/5 border border-white/10 rounded-lg overflow-hidden">
 	<a href={`/blog/${slug}`} class="flex flex-col justify-between h-full">
-			<div class="w-full md:h-1/2 shrink-0">
+			<div class="w-full max-h-72 md:h-1/2 shrink-0">
 				<Image 
 					width={500}
 					src={heroImage} 

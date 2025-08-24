@@ -39,4 +39,16 @@ body, html {
 }
 
 
+@media (max-width: 768px) {
+  /* Table overflow handling */
+  .prose table {
+    display: block;
+    width: 100%;
+    overflow-x: auto;
+  }
 
+  .prose table thead,
+  .prose table tbody {
+    width: 100%;
+  }
+}
