@@ -64,7 +64,7 @@ const recentPosts = sortedPosts.slice(0, 3);
 				<!-- Blog Section -->
 				<section class="py-8 md:py-12">
 					<SectionHeading>Latest articles</SectionHeading>
-					<div class="flex flex-col items-center md:flex-row md:flex-wrap justify-center gap-6 md:gap-12 md:px-12">
+					<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8 max-w-6xl mx-auto md:px-6">
 						{recentPosts.map((post) => (
 							<BlogCard slug={post.id} date={post.data.pubDate}>
 								<div slot="title">{post.data.title}</div>
