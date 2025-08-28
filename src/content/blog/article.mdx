@@ -1,0 +1,305 @@
+---
+title: "10 CSS Properties I've Found Really Useful"
+description: "Modern CSS properties that solve common problems elegantly."
+pubDate: 2025-08-28
+heroImage: '../../assets/hero-css.webp'
+---
+
+import {
+  AccentColorExample,
+  HasSelectorExample,
+  TextWrapExample,
+  ScrollSnapExample,
+  AspectRatioExample,
+  OverscrollBehaviorExample,
+  InsetExample,
+  PointerEventsExample,
+  GapExample
+} from '../../components/articles/CssExamples';
+
+CSS has come a long way from just colors and borders. These days, a few well-chosen properties can replace entire JavaScript libraries, fix annoying layout shifts, and make your stylesheets much cleaner. Here are some CSS things I've taken note of that are definitely useful to know.
+
+### 1. `accent-color`
+
+**The Problem:** Styling native form controls like checkboxes, radio buttons, and progress bars used to mean either complex CSS hacks or building custom components from scratch.
+
+**The Solution:** The `accent-color` property lets you apply your brand color to these elements with just one line, while keeping all the native functionality and accessibility intact.
+
+```html
+<style>
+  input[type="checkbox"],
+  input[type="radio"],
+  input[type="range"] {
+    accent-color: blue;
+  }
+</style>
+
+<input type="checkbox" checked />
+<input type="radio" checked />
+<input type="range" min="0" max="100" value="75" />
+```
+
+<AccentColorExample />
+
+---
+
+### 2. `:has()` (The Parent Selector)
+
+**The Problem:** CSS could only style an element or its children. There was no way to style a parent based on what's inside it or the state of a child element.
+
+**The Solution:** `:has()` is a game-changer that does exactly that. It lets you style a container if it `:has()` a specific child. This opens up so many patterns that used to need JavaScript.
+
+```html
+<style>
+  .card:has(input:checked) {
+    border: 2px solid green;
+    background-color: lightgreen;
+  }
+</style>
+
+<div class="card">
+  <input type="checkbox" />
+</div>
+```
+
+<HasSelectorExample />
+
+---
+
+### 3. `text-wrap: balance`
+
+**The Problem:** Short blocks of text, especially headlines, often wrap in weird ways, leaving a single word hanging on the last line (what typographers call a "widow").
+
+**The Solution:** `text-wrap: balance` tells the browser to balance the number of characters on each line, creating a more even and visually appealing text block.
+
+```html
+<style>
+  .with-text-wrap-balance { text-wrap: balance; }
+</style>
+
+<div>Lorem ipsum dolor sit amet consectetur adipisicing elit. Voluptatem aut cum eum id quos est.</div>
+<div class="with-text-wrap-balance">Lorem ipsum dolor sit amet consectetur adipisicing elit. Voluptatem aut cum eum id quos est.</div>
+```
+
+<TextWrapExample />
+
+---
+
+### 4. `scroll-snap-type` & `scroll-snap-align`
+
+**The Problem:** Building a smooth, snapping carousel or a section-by-section scroller usually meant adding a heavy JavaScript library to your project.
+
+**The Solution:** These properties let you create a native, smooth scroll-snapping experience with just a few lines of CSS.
+
+```html
+<style>
+  .carousel {
+    display: flex;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+  }
+  .slide {
+    flex: 0 0 100%;
+    scroll-snap-align: center;
+  }
+</style>
+
+<div class="carousel">
+  <div class="slide">Slide 1</div>
+  <div class="slide">Slide 2</div>
+  <div class="slide">Slide 3</div>
+  <div class="slide">Slide 4</div>
+</div>
+```
+
+<ScrollSnapExample />
+
+---
+
+### 5. `aspect-ratio`
+
+**The Problem:** Keeping the aspect ratio of an element (like a video embed or image container) responsive used to require the clunky `padding-bottom` hack.
+
+**The Solution:** The `aspect-ratio` property gives you a straightforward way to define an element's proportional dimensions. No more weird padding math.
+
+```html
+<style>
+  img {
+    aspect-ratio: 16 / 9;
+    object-fit: cover;
+  }
+</style>
+
+<img src="demo.jpg" alt="demo" />
+```
+
+<AspectRatioExample />
+
+---
+
+### 6. `overscroll-behavior`
+
+**The Problem:** When a user scrolls to the end of a modal or a scrollable sidebar, the scroll event "chains" to the main page, making the background scroll too.
+
+**The Solution:** `overscroll-behavior: contain;` keeps the scroll trapped within the element, stopping that annoying scroll chaining.
+
+```html
+<style>
+  .modal {
+    overflow: auto;
+    max-height: 150px;
+    overscroll-behavior: contain;
+  }
+</style>
+
+<div class="modal">
+  <p>Lots of text... Lots of text... Lots of text...</p>
+  <p>Lots of text... Lots of text... Lots of text...</p>
+  <p>Lots of text... Lots of text... Lots of text...</p>
+</div>
+```
+
+<OverscrollBehaviorExample />
+
+---
+
+### 7. `inset`
+
+**The Problem:** To make an absolutely positioned element fill its parent, you had to write `top: 0; right: 0; bottom: 0; left: 0;`. That's a lot of typing.
+
+**The Solution:** `inset` is the logical shorthand for all four properties. `inset: 0;` does the same thing in one clean line.
+
+```html
+<style>
+  .wrapper {
+    position: relative;
+    width: 200px;
+    height: 200px;
+    background: #374151;
+  }
+  .box {
+    position: absolute;
+    inset: 0;
+    background: #3b82f6;
+  }
+</style>
+
+<div class="wrapper">
+  <div class="box"></div>
+</div>
+```
+
+<InsetExample />
+
+---
+
+### 8. `gap`
+
+**The Problem:** Creating consistent spacing between flex and grid items used to mean using margins, which could cause weird side effects and get pretty complicated.
+
+**The Solution:** The `gap` property creates uniform spacing between items without messing with the outer edges, and it works a bit differently in flexbox vs grid layouts.
+
+```css
+/* Flexbox gap */
+.flex-container {
+  display: flex;
+  gap: 1rem; /* Creates space between flex items */
+}
+
+/* Grid gap */
+.grid-container {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem; /* Creates space between grid items in both directions */
+}
+```
+
+```html
+<!-- Flexbox with gap -->
+<div class="flex-container">
+  <div class="item">Item 1</div>
+  <div class="item">Item 2</div>
+  <div class="item">Item 3</div>
+  <div class="item">Item 4</div>
+</div>
+
+<!-- Grid with gap -->
+<div class="grid-container">
+  <div class="item">Item 1</div>
+  <div class="item">Item 2</div>
+  <div class="item">Item 3</div>
+  <div class="item">Item 4</div>
+</div>
+```
+
+<GapExample />
+
+---
+
+### 9. `pointer-events: none`
+
+**The Problem:** Overlapping elements would block user interaction with elements underneath them, requiring tricky z-index management or JavaScript workarounds.
+
+**The Solution:** `pointer-events: none` makes an element completely transparent to mouse events, letting clicks "pass through" to whatever is underneath it.
+
+```css
+.container {
+  position: relative;
+  height: 200px;
+}
+
+.button {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 10;
+}
+
+.overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(255, 0, 0, 0.6);
+  pointer-events: none; /* Allows clicks to pass through */
+  z-index: 20;
+}
+```
+
+```html
+<div class="container">
+  <button class="button">Click Me</button>
+  <div class="overlay">Overlay with pointer-events: none</div>
+</div>
+```
+
+<PointerEventsExample client:only="react" />
+
+---
+
+### 10. `:is()`
+
+**The Problem:** Writing long, repetitive selector lists for the same styles was verbose and hard to maintain.
+
+**The Solution:** The `:is()` pseudo-class lets you group selectors together, making your CSS more concise and easier to read.
+
+```css
+/* Instead of writing: */
+header p, main p, footer p {
+  color: blue;
+  border-left: 3px solid blue;
+  padding-left: 0.75rem;
+  font-weight: 500;
+}
+
+/* You can write: */
+:is(header, main, footer) p {
+  color: blue;
+  border-left: 3px solid blue;
+  padding-left: 0.75rem;
+  font-weight: 500;
+}
+```
+
+---
+
+These are the kinds of CSS properties that eliminate hacks and replace what used to need JavaScript. They're practical tools that make your code cleaner and your life easier.
