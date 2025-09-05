@@ -27,7 +27,7 @@ const { Content } = await render(post);
 	<article class="w-full md:max-w-4xl mx-auto md:px-6 py-8 md:py-16">
 		<header class="mb-8 md:mb-12">
 			{post.data.heroImage && (
-				<div class="mb-6 md:mb-8 rounded-lg overflow-hidden">
+				<div class="mb-6 md:mb-8 rounded-lg overflow-hidden flex justify-center">
 					<Image 
 						src={post.data.heroImage}
 						width={800} 
