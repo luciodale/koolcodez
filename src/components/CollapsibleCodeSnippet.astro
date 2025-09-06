@@ -1,0 +1,66 @@
+---
+export interface Props {
+  title: string;
+}
+
+const { title} = Astro.props;
+const id = `code-snippet-${Math.random().toString(36).slice(2, 11)}`;
+---
+
+<div class="bg-gray-900 rounded-lg overflow-hidden">
+  <div class="flex items-center justify-between p-4">
+    <div class="text-sm font-medium leading-none">{title}</div>
+    <button
+      class="expand-btn text-xs border cursor-pointer px-3 py-1.5 rounded focus:outline-none leading-none"
+      data-target={id}
+    >
+      <span class="button-text">Show Code</span>
+    </button>
+  </div>
+  
+  <div class="code-container hidden" id={`${id}-container`}>
+    <slot />
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const buttons = document.querySelectorAll('.expand-btn');
+    
+    buttons.forEach(button => {
+      button.addEventListener('click', () => {
+        const targetId = button.getAttribute('data-target');
+        const container = document.getElementById(`${targetId}-container`);
+        const buttonText = button.querySelector('.button-text');
+        
+        if (container && buttonText) {
+          const isHidden = container.classList.contains('hidden');
+          
+          if (isHidden) {
+            // Show code
+            container.classList.remove('hidden');
+            buttonText.textContent = 'Hide Code';
+          } else {
+            // Hide code
+            container.classList.add('hidden');
+            buttonText.textContent = 'Show Code';
+          }
+        }
+      });
+    });
+  });
+</script>
+
+<style>
+  /* Only CSS for the tricky global targeting that Tailwind can't handle */
+  .code-container :global(pre),
+  .code-container :global(.astro-code) {
+    margin: 0 !important;
+    border-radius: 0 !important;
+    border: none !important;
+  }
+  
+  .code-container :global(pre:last-child) {
+    border-radius: 0 0 0.5rem 0.5rem !important;
+  }
+</style>

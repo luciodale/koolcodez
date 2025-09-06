@@ -1,0 +1,426 @@
+---
+title: "We Badly Need Frameworks"
+description: "With all their pros and cons."
+pubDate: "Sep 06 2025"
+heroImage: "../../assets/hero-frameworks.webp"
+---
+
+import CollapsibleCodeSnippet from '../../components/CollapsibleCodeSnippet.astro';
+
+## The Experiment
+
+I asked some AI to give me a todo list app. First in React, then in plain JavaScript.
+
+
+<CollapsibleCodeSnippet title="React Todo App">
+
+```javascript
+import React, { useState, useEffect, useMemo } from 'react';
+
+// Main App Component
+export default function App() {
+    // --- STATE MANAGEMENT ---
+    // Initialize tasks from localStorage, running this function only once
+    const [tasks, setTasks] = useState(() => {
+        try {
+            const localTasks = localStorage.getItem('tasks');
+            return localTasks ? JSON.parse(localTasks) : [];
+        } catch (error) {
+            console.error("Failed to parse tasks from localStorage", error);
+            return [];
+        }
+    });
+
+    // State for the current filter ('all', 'active', 'completed')
+    const [currentFilter, setCurrentFilter] = useState('all');
+    // State for the new task input field
+    const [inputValue, setInputValue] = useState('');
+
+    // --- EFFECTS ---
+    // Save tasks to localStorage whenever the tasks state changes
+    useEffect(() => {
+        localStorage.setItem('tasks', JSON.stringify(tasks));
+    }, [tasks]);
+
+    // --- TASK MANIPULATION HANDLERS ---
+    const handleAddTask = (e) => {
+        e.preventDefault();
+        const text = inputValue.trim();
+        if (text === '') return;
+
+        const newTask = {
+            id: Date.now(),
+            text: text,
+            completed: false
+        };
+        setTasks([...tasks, newTask]);
+        setInputValue(''); // Reset input field
+    };
+
+    const handleToggleTask = (id) => {
+        setTasks(
+            tasks.map(task =>
+                task.id === id ? { ...task, completed: !task.completed } : task
+            )
+        );
+    };
+
+    const handleDeleteTask = (id) => {
+        setTasks(tasks.filter(task => task.id !== id));
+    };
+
+    const handleClearCompleted = () => {
+        setTasks(tasks.filter(task => !task.completed));
+    };
+
+    // --- DERIVED STATE & FILTERING ---
+    // Memoize filtered tasks to avoid re-calculating on every render
+    const filteredTasks = useMemo(() => {
+        switch (currentFilter) {
+            case 'active':
+                return tasks.filter(task => !task.completed);
+            case 'completed':
+                return tasks.filter(task => task.completed);
+            default:
+                return tasks;
+        }
+    }, [tasks, currentFilter]);
+
+    // Calculate the number of active tasks
+    const activeTasksCount = useMemo(() => tasks.filter(task => !task.completed).length, [tasks]);
+
+    // --- RENDER ---
+    return (
+        <div className="bg-gray-900 text-white flex items-center justify-center min-h-screen p-4 font-['Inter',_sans-serif]">
+            <div className="w-full max-w-md mx-auto">
+                <header className="text-center mb-8">
+                    <h1 className="text-4xl font-bold tracking-tighter text-gray-100">Todo List (React)</h1>
+                    <p className="text-gray-400 mt-2">A simple and elegant way to manage your tasks.</p>
+                </header>
+
+                {/* Form for adding new tasks */}
+                <form onSubmit={handleAddTask} className="mb-6">
+                    <div className="flex shadow-md rounded-lg">
+                        <input
+                            type="text"
+                            value={inputValue}
+                            onChange={(e) => setInputValue(e.target.value)}
+                            className="w-full p-4 bg-gray-800 border-gray-700 text-gray-200 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-violet-500 transition duration-200"
+                            placeholder="e.g., Learn React"
+                            autoComplete="off"
+                        />
+                        <button
+                            type="submit"
+                            className="bg-violet-600 hover:bg-violet-700 text-white font-bold p-4 rounded-r-lg transition duration-200"
+                        >
+                            Add
+                        </button>
+                    </div>
+                </form>
+
+                {/* Container for the list of tasks */}
+                <div className="bg-gray-800 rounded-lg shadow-md overflow-hidden">
+                    {filteredTasks.length > 0 ? (
+                        filteredTasks.map(task => (
+                            <div
+                                key={task.id}
+                                className="flex items-center justify-between p-4 border-b border-gray-700 last:border-b-0"
+                            >
+                                <div className="flex items-center">
+                                    <input
+                                        type="checkbox"
+                                        checked={task.completed}
+                                        onChange={() => handleToggleTask(task.id)}
+                                        className="toggle-complete h-5 w-5 rounded-full bg-gray-700 border-gray-600 text-violet-600 focus:ring-violet-500 cursor-pointer"
+                                    />
+                                    <span className={`ml-4 ${task.completed ? 'line-through text-gray-500' : 'text-gray-200'}`}>
+                                        {task.text}
+                                    </span>
+                                </div>
+                                <button
+                                    onClick={() => handleDeleteTask(task.id)}
+                                    className="delete-btn text-gray-500 hover:text-red-500 transition"
+                                >
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                </button>
+                            </div>
+                        ))
+                    ) : (
+                        <div className="p-4 text-center text-gray-500">No tasks here. Add one above!</div>
+                    )}
+                </div>
+
+                {/* Filters and actions footer */}
+                 {tasks.length > 0 && (
+                    <div className="flex justify-between items-center mt-6 text-sm text-gray-400">
+                        <span>{activeTasksCount} item{activeTasksCount !== 1 ? 's' : ''} left</span>
+                        <div className="flex space-x-2">
+                            <button onClick={() => setCurrentFilter('all')} className={`font-medium hover:text-white transition ${currentFilter === 'all' ? 'text-violet-400' : ''}`}>All</button>
+                            <button onClick={() => setCurrentFilter('active')} className={`font-medium hover:text-white transition ${currentFilter === 'active' ? 'text-violet-400' : ''}`}>Active</button>
+                            <button onClick={() => setCurrentFilter('completed')} className={`font-medium hover:text-white transition ${currentFilter === 'completed' ? 'text-violet-400' : ''}`}>Completed</button>
+                        </div>
+                        <button onClick={handleClearCompleted} className="font-medium hover:text-white transition">Clear Completed</button>
+                    </div>
+                 )}
+            </div>
+        </div>
+    );
+}
+```
+
+</CollapsibleCodeSnippet>
+
+---
+
+<CollapsibleCodeSnippet title="Vanilla JavaScript Todo App">
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>To-Do List App</title>
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Custom styles for the app */
+        body {
+            font-family: 'Inter', sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        /* Style for completed tasks */
+        .completed {
+            text-decoration: line-through;
+            color: #888;
+        }
+        /* Custom focus ring color */
+        .focus-ring-custom:focus {
+            --tw-ring-color: #a78bfa; /* violet-400 */
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-white flex items-center justify-center min-h-screen p-4">
+
+    <div class="w-full max-w-md mx-auto">
+        <header class="text-center mb-8">
+            <h1 class="text-4xl font-bold tracking-tighter text-gray-100">Todo List</h1>
+            <p class="text-gray-400 mt-2">A simple and elegant way to manage your tasks.</p>
+        </header>
+
+        <!-- Form for adding new tasks -->
+        <form id="todo-form" class="mb-6">
+            <div class="flex shadow-md rounded-lg">
+                <input
+                    type="text"
+                    id="todo-input"
+                    class="w-full p-4 bg-gray-800 border-gray-700 text-gray-200 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-violet-500 focus-ring-custom transition duration-200"
+                    placeholder="e.g., Learn JavaScript"
+                    autocomplete="off"
+                >
+                <button
+                    type="submit"
+                    class="bg-violet-600 hover:bg-violet-700 text-white font-bold p-4 rounded-r-lg transition duration-200"
+                >
+                    Add
+                </button>
+            </div>
+        </form>
+
+        <!-- Container for the list of tasks -->
+        <div id="todo-list" class="bg-gray-800 rounded-lg shadow-md overflow-hidden">
+            <!-- Tasks will be dynamically inserted here -->
+        </div>
+
+        <!-- Filters and actions footer -->
+        <div id="filter-controls" class="flex justify-between items-center mt-6 text-sm text-gray-400">
+             <span id="task-count">0 items left</span>
+            <div class="flex space-x-2">
+                <button data-filter="all" class="filter-btn font-medium hover:text-white transition active">All</button>
+                <button data-filter="active" class="filter-btn font-medium hover:text-white transition">Active</button>
+                <button data-filter="completed" class="filter-btn font-medium hover:text-white transition">Completed</button>
+            </div>
+            <button id="clear-completed" class="font-medium hover:text-white transition">Clear Completed</button>
+        </div>
+
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const todoForm = document.getElementById('todo-form');
+            const todoInput = document.getElementById('todo-input');
+            const todoList = document.getElementById('todo-list');
+            const taskCount = document.getElementById('task-count');
+            const clearCompletedBtn = document.getElementById('clear-completed');
+            const filterBtns = document.querySelectorAll('.filter-btn');
+
+            // --- STATE MANAGEMENT ---
+            let tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+            let currentFilter = 'all';
+
+            const saveTasks = () => {
+                localStorage.setItem('tasks', JSON.stringify(tasks));
+            };
+
+            // --- RENDER FUNCTION ---
+            const renderTasks = () => {
+                todoList.innerHTML = '';
+                let tasksToRender = tasks;
+
+                // Apply filter
+                if (currentFilter === 'active') {
+                    tasksToRender = tasks.filter(task => !task.completed);
+                } else if (currentFilter === 'completed') {
+                    tasksToRender = tasks.filter(task => task.completed);
+                }
+
+                if (tasksToRender.length === 0) {
+                     todoList.innerHTML = `<div class="p-4 text-center text-gray-500">No tasks here. Add one above!</div>`;
+                } else {
+                    tasksToRender.forEach(task => {
+                        const taskElement = document.createElement('div');
+                        taskElement.className = 'flex items-center justify-between p-4 border-b border-gray-700 last:border-b-0';
+                        taskElement.dataset.id = task.id;
+
+                        const taskContent = `
+                            <div class="flex items-center">
+                                <input type="checkbox" ${task.completed ? 'checked' : ''} class="toggle-complete h-5 w-5 rounded-full bg-gray-700 border-gray-600 text-violet-600 focus:ring-violet-500 cursor-pointer">
+                                <span class="ml-4 ${task.completed ? 'completed text-gray-500' : 'text-gray-200'}">${task.text}</span>
+                            </div>
+                            <button class="delete-btn text-gray-500 hover:text-red-500 transition">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        `;
+                        taskElement.innerHTML = taskContent;
+                        todoList.appendChild(taskElement);
+                    });
+                }
+                updateTaskCount();
+            };
+
+            // --- TASK MANIPULATION ---
+            const addTask = (text) => {
+                if (text.trim() === '') return;
+                const newTask = {
+                    id: Date.now(),
+                    text: text,
+                    completed: false
+                };
+                tasks.push(newTask);
+                saveTasks();
+                renderTasks();
+            };
+
+            const toggleTask = (id) => {
+                tasks = tasks.map(task =>
+                    task.id === id ? { ...task, completed: !task.completed } : task
+                );
+                saveTasks();
+                renderTasks();
+            };
+
+            const deleteTask = (id) => {
+                tasks = tasks.filter(task => task.id !== id);
+                saveTasks();
+                renderTasks();
+            };
+            
+            const clearCompleted = () => {
+                tasks = tasks.filter(task => !task.completed);
+                saveTasks();
+                renderTasks();
+            };
+
+            // --- UI UPDATES ---
+            const updateTaskCount = () => {
+                const activeTasks = tasks.filter(task => !task.completed).length;
+                taskCount.textContent = `${activeTasks} item${activeTasks !== 1 ? 's' : ''} left`;
+            };
+
+            const updateFilterButtons = () => {
+                filterBtns.forEach(btn => {
+                    if (btn.dataset.filter === currentFilter) {
+                        btn.classList.add('text-violet-400');
+                        btn.classList.remove('text-gray-400');
+                    } else {
+                        btn.classList.remove('text-violet-400');
+                        btn.classList.add('text-gray-400');
+                    }
+                });
+            };
+
+            // --- EVENT LISTENERS ---
+            todoForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                addTask(todoInput.value);
+                todoInput.value = '';
+            });
+
+            todoList.addEventListener('click', (e) => {
+                if (e.target.classList.contains('toggle-complete')) {
+                    const id = parseInt(e.target.closest('[data-id]').dataset.id);
+                    toggleTask(id);
+                }
+                if (e.target.closest('.delete-btn')) {
+                    const id = parseInt(e.target.closest('[data-id]').dataset.id);
+                    deleteTask(id);
+                }
+            });
+
+            clearCompletedBtn.addEventListener('click', clearCompleted);
+            
+            filterBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    currentFilter = btn.dataset.filter;
+                    updateFilterButtons();
+                    renderTasks();
+                });
+            });
+
+            // --- INITIALIZATION ---
+            renderTasks();
+            updateFilterButtons();
+        });
+    </script>
+</body>
+</html>
+```
+
+</CollapsibleCodeSnippet>
+
+## The Results
+
+The React version came back more or less as you would expect. Some JSX, some state, a render function. Familiar. I could hand that snippet to almost any React developer and they would skim it and nod along. No drama, no surprises.
+
+The vanilla JavaScript version was a different story. It worked, sure, but it took me considerably longer to understand. DOM manipulation here, event listeners there, a custom renderer. Honestly, I could think of a hundred ways to build it, and each would spark a debate. None feel like the obvious baseline. And that is the problem.
+
+## The Cost of Freedom
+
+Without a framework, you are inventing your own rules. The next person on the team has to learn them. Subtle bugs are likely to creep in because the solution is novel, not battle tested. These are the kind of bugs nobody wants to debug. They are not about features, they are about the scaffolding holding the project together. And if the team is skilled and committed enough to actually build something sensible, well, congratulations. You just invented a new framework. Not that anyone will call it that.
+
+## Why Frameworks Help
+
+Frameworks give us something better than freedom. They provide conventions most people already understand, which saves a huge amount of time and mental overhead. Patterns for state management, project structure, component hierarchy, and even file organization are mostly solved problems. Linting rules, best practices, and common gotchas are baked in or widely documented. You do not need to reinvent solutions for problems that thousands of developers have already tackled. On top of that, you can largely delegate framework related bugs and edge cases to the open source team maintaining it, which means less responsibility on your team and more focus on building features that actually matter.
+
+## It's Not All Shiny
+
+“It's just JavaScript” is a common refrain, but once you commit to React, Vue, or Svelte, you are not just picking a library. You are picking a whole ecosystem. Swapping frameworks later is not trivial, and in practice, once you go in, you are committed for good. Framework independent libraries cannot always be ported easily, and that is often why developers stick with a framework. Better support, tooling, and packages are usually part of the equation. I have built some open source libraries myself, and I feel the pain for library authors. To reach a wider audience, they often have to maintain multiple versions across frameworks. That is why I personally pick React and build for that. I do not have the energy to port my code across the most used frameworks. Not a heroic choice, just realistic.
+
+## The Clojure Example
+
+Some ecosystems, like Clojure, work differently. A handful of battle tested libraries everyone trusts. You can mix and match them to make something tailored while still benefiting from a standard toolset.
+
+Even here, there are trade offs. Picking a number of modules to get started can be a blocker for more junior developers who do not yet understand the patterns and best practices, making the community less welcoming to newcomers. Nothing is perfect, but at least the baseline is shared.
+
+## Conclusion
+
+As much as frameworks can seem limiting and come with their own quirks, they are still the best way to keep projects maintainable and understandable. The alternative is worse. Every team reinventing its own mini framework will inevitably degrade over time due to lack of resources or simply poor decisions.
