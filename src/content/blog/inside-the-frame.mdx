@@ -1,0 +1,77 @@
+---
+title: "Inside the Frame: What Really Happens When the Browser Renders"
+description: "Understand how rendering works and make your animations feel effortless."
+pubDate: "October 7 2025"
+heroImage: "../../assets/hero-inside-frame.webp"
+---
+
+
+import { Image } from 'astro:assets'
+import slowFPS from '../../assets/20.webp'
+import fastFPS from '../../assets/60.webp'
+
+import SquaresRendering from "../../components/articles/SquaresRendering.astro";
+
+*tldr;* [go to the DEMO](#demo)
+
+Whether you are using a full framework or vanilla JavaScript, the browser follows the same principles in how it operates. Understanding these principles can make the difference between a janky, frustrating experience and a smooth, enjoyable one.
+
+## Quick corrections and facts
+
+JavaScript runs on a single thread, and it must yield control back to the browser, so that multiple tasks can run.
+
+The browser rendering cycle for a single frame looks like this:
+
+1. **style calculation**
+2. **reflow** (also called layout) – computes positions and sizes
+3. **repaint** (also called paint) – paints pixels into layers
+4. **composite** – composes layers together, often on the GPU
+
+**Frame budget math:** There are 1000 milliseconds in one second. Dividing by 60 frames per second gives 1000 / 60 = 16.6666666667 milliseconds per frame, which we round to 16.67 milliseconds. If your main thread work plus layout and paint exceed about 16.67 ms, you will drop frames at 60 fps.
+
+Let’s better explain what each step of the rendering cycle does.
+
+* **Style Calculation:** The browser figures out which CSS rules apply to each element and computes their final styles. This includes resolving cascading rules, inheritance, and any computed values such as percentages or `em` units.
+* **Reflow:** This calculates the **geometry** of all elements on the page, including size (width, height) and position (top, left, etc.). A reflow on one element can trigger reflows on its parent and children, making it expensive.
+* **Repaint:** This fills in the pixels for each element, including backgrounds, text colors, borders, and shadows. Repainting is also costly, especially with complex styles such as gradients or shadows.
+* **Composite:** This is where the browser takes the painted layers and draws them to the screen in order. This is the cheapest step of the three. By sticking to properties that only trigger compositing, we can achieve very smooth animations.
+
+## What matters in practice
+
+- **Scripting time** is the time your JavaScript holds the main thread. Heavy synchronous work blocks layout and paint until it finishes.
+- Changing layout-affecting properties such as `top`, `left`, `width`, `height`, or `margin` forces layout and can cascade through the tree.
+- Changing paint-only properties such as `background-color`, `box-shadow`, or `border-radius` triggers painting but not layout.
+- Changing `transform` or `opacity` is often handled by the compositor and can avoid both layout and paint if the browser creates a layer for the element.
+
+On modern browsers and powerful machines, these steps are fast enough for simple sites. But when we start building complex animations or dealing with many elements, these bottlenecks become visible.
+
+It is worth testing and learning how to exploit certain properties to dramatically improve performance.
+
+## The Use Case
+
+To demonstrate the impact of these rendering steps, we will build a simple demo with several squares that can be animated and shuffled around.
+
+First, we will implement a **bad** example. We will animate the squares using the `top` and `left` properties, which trigger a reflow on every frame. We will also add a `box-shadow` transition, which stresses the repaint step.
+
+Then, we will refactor to a **good** example. We will use the `transform` and `opacity` properties. These are GPU accelerated and only trigger the composite step, resulting in much smoother animation with a smaller performance footprint.
+
+Here’s the demo. You can toggle between the "Bad" and "Good" implementations to see the performance difference. The effect is especially clear when you spam the shuffle button.
+
+<div id="demo">
+  <SquaresRendering />
+</div>
+
+The FPS meter in developer tools clearly shows the difference.  
+We hit barely 20 FPS with the "Bad" implementation and reach a steady 60 FPS with the "Good" one.
+
+<div class="flex">
+<Image class="w-1/2 shrink-0" alt='slow FPS' src={slowFPS} />
+<Image class="w-1/2 shrink-0" alt='fast FPS' src={fastFPS} />
+</div>
+
+## Conclusion
+
+Smooth performance is not magic. It comes from understanding what the browser is doing under the hood and working with it rather than against it.  
+If you animate layout or paint properties, the browser has to do heavy recalculations each frame. But if you stick to compositor-friendly properties like `transform` and `opacity`, you hand the work off to the GPU, freeing the main thread and keeping animations fluid.  
+
+Mastering these details is one of the simplest yet most powerful ways to make your interfaces feel professional and responsive.

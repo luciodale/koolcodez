@@ -1,0 +1,298 @@
+---
+// No server-side JavaScript is needed for this component.
+---
+<div>
+       <div class="controls">
+      <button id="shuffle-btn" class="btn-accent">Shuffle</button>
+      <div class="toggle-switch">
+        <label>
+          <span class="label-text label-left">Unoptimized code</span>
+          <input type="checkbox" id="mode-toggle" />
+          <span class="slider"></span>
+          <span class="label-text label-right">Use Optimized Code</span>
+        </label>
+      </div>
+    </div>
+    <div id="squares-container"></div>
+   
+</div>
+  
+  <style>
+    .controls {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin-bottom: 2rem;
+      gap: 1rem;
+    }
+    
+    .btn-accent {
+      padding: 10px 16px;
+      font-size: 1rem;
+      cursor: pointer;
+      border: 1px solid var(--color-accent, #ef4723);
+      border-radius: 9999px;
+      background: transparent;
+      color: var(--color-accent, #ef4723);
+      font-weight: 700;
+      letter-spacing: 0.01em;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: border-color 0.2s ease, color 0.2s ease, transform 0.1s ease;
+    }
+    .btn-accent:hover {
+      border-color: #ff5a36; /* subtle hover, same family as accent */
+      color: #ff5a36;
+    }
+    .btn-accent:active {
+      transform: translateY(1px);
+    }
+    .btn-accent:focus-visible {
+      outline: none;
+      box-shadow: 0 0 0 2px rgba(239, 71, 35, 0.35);
+    }
+    
+    /* Toggle styles */
+    .toggle-switch {
+      display: flex;
+      align-items: center;
+    }
+    .toggle-switch label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+    }
+    .toggle-switch input[type="checkbox"] {
+      position: relative;
+      width: 48px;
+      height: 26px;
+      appearance: none;
+      background-color: #e5e7eb;
+      border-radius: 9999px;
+      border: 1px solid #c7c9d1;
+      cursor: pointer;
+      transition: background-color 0.2s, border-color 0.2s;
+      box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.12);
+    }
+    .toggle-switch input[type="checkbox"]::before {
+      content: '';
+      position: absolute;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background-color: white;
+      top: 2px;
+      left: 3px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+      transition: left 0.2s ease;
+    }
+    .toggle-switch input[type="checkbox"]:checked {
+      background-color: var(--color-accent, #ef4723);
+      border-color: var(--color-accent, #ef4723);
+    }
+    .toggle-switch input[type="checkbox"]:checked::before {
+      left: 25px;
+    }
+    .label-text {
+      font-size: 0.95rem;
+      font-weight: 500;
+      transition: color 0.2s ease;
+    }
+    /* Default (unchecked) highlights Unoptimized */
+    .toggle-switch label .label-left {
+      color: var(--color-accent, #ef4723);
+    }
+    .toggle-switch label .label-right {
+      color: #94a3b8;
+    }
+    /* When checked, highlight Optimized */
+    .toggle-switch label:has(input:checked) .label-left {
+      color: #94a3b8;
+    }
+    .toggle-switch label:has(input:checked) .label-right {
+      color: var(--color-accent, #ef4723);
+    }
+    
+    #squares-container {
+      position: relative;
+      width: 100%;
+      height: 500px;
+      border-radius: 8px;
+    }
+    
+    :global(.square-base) {
+      position: absolute;
+      width: 48px;
+      height: 48px;
+      border: 2px solid var(--color-accent, #ef4723);
+      /* background-color: var(--color-accent, #ef4723); */
+      border-radius: 8px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      color: white;
+      font-weight: 700;
+    }
+    
+    :global(#squares-container.is-animating .square-unoptimized) {
+      transition-property: top, left, box-shadow;
+      transition-duration: 0.5s;
+      transition-timing-function: ease-in-out;
+    }
+
+    :global(#squares-container.is-animating .square-optimized) {
+      transition-property: transform, opacity;
+      transition-duration: 0.5s;
+      transition-timing-function: ease-in-out;
+      will-change: transform, opacity;
+    }
+    
+  </style>
+  
+  <script>
+    const NUM_SQUARES = 121;
+    const SQUARE_SIZE = 48;
+    const GAP = 10;
+    const TRANSITION_MS = 500;
+    const ANIMATION_BUFFER_MS = 50;
+    
+    const container = document.getElementById('squares-container') as HTMLElement;
+    const shuffleBtn = document.getElementById('shuffle-btn') as HTMLButtonElement;
+    const modeToggle = document.getElementById('mode-toggle') as HTMLInputElement;
+
+    if (!container || !shuffleBtn || !modeToggle) {
+      throw new Error('Required elements not found');
+    }
+
+    let squares: HTMLElement[] = [];
+    let gridPositions: Array<{ left: number; top: number }> = [];
+    let currentPositionIndices: number[] = [];
+    let isOptimized = false;
+    let animationTimeoutId: number | undefined;
+    let optimizedResetTimeoutId: number | undefined;
+    let unoptimizedResetTimeoutId: number | undefined;
+
+    const calculateGridPositions = () => {
+      gridPositions = [];
+      const containerWidth = container.clientWidth;
+      const itemWidth = SQUARE_SIZE + GAP;
+      const cols = Math.max(1, Math.floor(containerWidth / itemWidth));
+      const rows = Math.ceil(NUM_SQUARES / cols);
+      container.style.height = `${rows * itemWidth - GAP}px`;
+      
+      for (let i = 0; i < NUM_SQUARES; i++) {
+        const col = i % cols;
+        const row = Math.floor(i / cols);
+        gridPositions.push({
+          left: col * itemWidth,
+          top: row * itemWidth
+        });
+      }
+    };
+
+    const createSquares = () => {
+      for (let i = 0; i < NUM_SQUARES; i++) {
+        const square = document.createElement('div');
+        square.classList.add('square-base', 'square-unoptimized');
+        square.textContent = String(i + 1);
+        container.appendChild(square);
+        squares.push(square);
+      }
+    };
+
+    const shuffleArray = (array: number[]) => {
+      const newArray = [...array];
+      for (let i = newArray.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
+      }
+      return newArray;
+    };
+
+    // No transition toggling helpers; we control transitions via CSS class
+
+    const applyPositionsOptimized = (animate: boolean) => {
+      if (optimizedResetTimeoutId) clearTimeout(optimizedResetTimeoutId);
+      squares.forEach((square, i) => {
+        const { top, left } = gridPositions[currentPositionIndices[i]];
+        square.style.transform = `translate(${left}px, ${top}px)`;
+        square.style.top = '';
+        square.style.left = '';
+        if (animate) square.style.opacity = '0.7';
+      });
+      if (animate) {
+        optimizedResetTimeoutId = window.setTimeout(() => {
+          squares.forEach(s => s.style.opacity = '1');
+        }, TRANSITION_MS);
+      }
+    };
+
+    const applyPositionsUnoptimized = (animate: boolean) => {
+      if (unoptimizedResetTimeoutId) clearTimeout(unoptimizedResetTimeoutId);
+      squares.forEach((square, i) => {
+        const { top, left } = gridPositions[currentPositionIndices[i]];
+        square.style.top = `${top}px`;
+        square.style.left = `${left}px`;
+        square.style.transform = '';
+        if (animate) square.style.boxShadow = '0 14px 28px rgba(239,68,68,0.45)';
+      });
+      if (animate) {
+        unoptimizedResetTimeoutId = window.setTimeout(() => {
+          squares.forEach(s => s.style.boxShadow = 'none');
+        }, TRANSITION_MS);
+      }
+    };
+
+    const shuffleSquares = () => {
+      currentPositionIndices = shuffleArray(currentPositionIndices);
+      container.classList.add('is-animating');
+      if (animationTimeoutId) clearTimeout(animationTimeoutId);
+      if (isOptimized) {
+        applyPositionsOptimized(true);
+      } else {
+        applyPositionsUnoptimized(true);
+      }
+      animationTimeoutId = window.setTimeout(() => {
+        container.classList.remove('is-animating');
+      }, TRANSITION_MS + ANIMATION_BUFFER_MS);
+    };
+
+    const setMode = (nextOptimized: boolean) => {
+      isOptimized = nextOptimized;
+      squares.forEach(square => {
+        square.classList.remove('square-optimized', 'square-unoptimized');
+        square.classList.add(isOptimized ? 'square-optimized' : 'square-unoptimized');
+      });
+      if (isOptimized) {
+        applyPositionsOptimized(false);
+      } else {
+        applyPositionsUnoptimized(false);
+      }
+    };
+
+    // Initialize
+    calculateGridPositions();
+    createSquares();
+    currentPositionIndices = Array.from({ length: NUM_SQUARES }, (_, i) => i);
+    // Initial placement without animation
+    applyPositionsUnoptimized(false);
+
+    // Recompute grid on resize
+    window.addEventListener('resize', () => {
+      calculateGridPositions();
+      if (isOptimized) {
+        applyPositionsOptimized(false);
+      } else {
+        applyPositionsUnoptimized(false);
+      }
+    });
+
+    shuffleBtn.addEventListener('click', () => {
+      shuffleSquares();
+    });
+    modeToggle.addEventListener('change', () => {
+      setMode(modeToggle.checked);
+    });
+  </script>
