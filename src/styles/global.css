@@ -31,13 +31,13 @@ html {
   scroll-behavior: smooth;
   font-size: 16px;
   font-family: var(--font-family);
+  scroll-padding-top: 100px; /* offset for sticky navbar */
 }
 
 body, html {
   margin: 0;
   padding: 0;
 }
-
 
 @media (max-width: 768px) {
   /* Table overflow handling */
