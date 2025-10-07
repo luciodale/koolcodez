@@ -2,15 +2,28 @@
 // No server-side JavaScript is needed for this component.
 ---
 <div>
-       <div class="controls">
-      <button id="shuffle-btn" class="btn-accent">Shuffle</button>
-      <div class="toggle-switch">
-        <label>
-          <span class="label-text label-left">Unoptimized code</span>
-          <input type="checkbox" id="mode-toggle" />
-          <span class="slider"></span>
-          <span class="label-text label-right">Optimized Code</span>
-        </label>
+       <div class="controls" id="controls-container">
+      
+      <div class="control-item">
+        <button id="shuffle-btn" class="btn-accent">Shuffle</button>
+      </div>
+      
+      <div class="control-item">
+        <div class="toggle-switch">
+          <label>
+            <span class="label-text label-left">Unoptimized code</span>
+            <input type="checkbox" id="mode-toggle" />
+            <span class="slider"></span>
+            <span class="label-text label-right">Optimized Code</span>
+          </label>
+        </div>
+      </div>
+      
+      <div class="control-item">
+        <div class="slider-control">
+          <label for="squares-slider" class="slider-label">Squares: <span id="squares-count" class="squares-count">121</span></label>
+          <input type="range" id="squares-slider" min="25" max="400" value="121" class="slider-input" />
+        </div>
       </div>
     </div>
     <div id="squares-container"></div>
@@ -20,10 +33,33 @@
   <style>
     .controls {
       display: flex;
-      justify-content: center;
+      flex-direction: column;
       align-items: center;
       margin-bottom: 2rem;
-      gap: 1rem;
+      gap: 1.5rem;
+      padding: 1.5rem;
+      border-radius: 12px;
+      border: 1px solid var(--color-accent, #ef4723);
+      max-width: 100%;
+      overflow: hidden;
+      transition: border-color 0.2s ease;
+    }
+    
+    .controls.optimized {
+      border-color: #22c55e;
+    }
+    
+  
+    
+    .controls.optimized {
+      color: #22c55e;
+    }
+    
+    .control-item {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      width: 100%;
     }
     
     .btn-accent {
@@ -65,12 +101,23 @@
     .toggle-switch {
       display: flex;
       align-items: center;
+      min-width: 0;
+      flex-shrink: 1;
     }
     .toggle-switch label {
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 6px;
       cursor: pointer;
+      white-space: nowrap;
+      min-width: 0;
+    }
+    
+    @media (max-width: 768px) {
+      .toggle-switch label {
+        gap: 4px;
+        font-size: 0.9rem;
+      }
     }
     .toggle-switch input[type="checkbox"] {
       position: relative;
@@ -107,6 +154,13 @@
       font-size: 0.95rem;
       font-weight: 500;
       transition: color 0.2s ease;
+      white-space: nowrap;
+    }
+    
+    @media (max-width: 768px) {
+      .label-text {
+        font-size: 0.85rem;
+      }
     }
     /* Default (unchecked) highlights Unoptimized */
     .toggle-switch label .label-left {
@@ -121,6 +175,103 @@
     }
     .toggle-switch label:has(input:checked) .label-right {
       color: #22c55e;
+    }
+    
+    /* Slider Control Styles */
+    .slider-control {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.75rem;
+      min-width: 140px;
+      flex-shrink: 0;
+    }
+    
+    @media (max-width: 768px) {
+      .slider-control {
+        min-width: 120px;
+        gap: 0.5rem;
+      }
+    }
+    
+    .slider-label {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--color-accent, #ef4723);
+      letter-spacing: 0.025em;
+      text-align: center;
+      transition: color 0.2s ease;
+    }
+    
+    .controls.optimized .slider-label {
+      color: #22c55e;
+    }
+    
+    .squares-count {
+      color: var(--color-accent, #ef4723);
+      font-weight: 700;
+      transition: color 0.2s ease;
+    }
+    
+    .controls.optimized .squares-count {
+      color: #22c55e;
+    }
+    
+    .slider-input {
+      width: 140px;
+      height: 8px;
+      border-radius: 4px;
+      background: #e2e8f0;
+      outline: none;
+      -webkit-appearance: none;
+      cursor: pointer;
+      transition: background-color 0.2s ease;
+    }
+    
+    .slider-input:hover {
+      background: #cbd5e1;
+    }
+    
+    .slider-input::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: var(--color-accent, #ef4723);
+      cursor: pointer;
+      border: 3px solid white;
+      box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15), 0 1px 3px rgba(0, 0, 0, 0.1);
+      transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+    }
+    
+    .slider-input::-webkit-slider-thumb:hover {
+      transform: scale(1.1);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2), 0 2px 4px rgba(0, 0, 0, 0.15);
+    }
+    
+    .controls.optimized .slider-input::-webkit-slider-thumb {
+      background: #22c55e;
+    }
+    
+    .slider-input::-moz-range-thumb {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: var(--color-accent, #ef4723);
+      cursor: pointer;
+      border: 3px solid white;
+      box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15), 0 1px 3px rgba(0, 0, 0, 0.1);
+      transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+    }
+    
+    .slider-input::-moz-range-thumb:hover {
+      transform: scale(1.1);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2), 0 2px 4px rgba(0, 0, 0, 0.15);
+    }
+    
+    .controls.optimized .slider-input::-moz-range-thumb {
+      background: #22c55e;
     }
     
     #squares-container {
@@ -175,8 +326,11 @@
     const container = document.getElementById('squares-container') as HTMLElement;
     const shuffleBtn = document.getElementById('shuffle-btn') as HTMLButtonElement;
     const modeToggle = document.getElementById('mode-toggle') as HTMLInputElement;
+    const squaresSlider = document.getElementById('squares-slider') as HTMLInputElement;
+    const squaresCount = document.getElementById('squares-count') as HTMLElement;
+    const controlsContainer = document.getElementById('controls-container') as HTMLElement;
 
-    if (!container || !shuffleBtn || !modeToggle) {
+    if (!container || !shuffleBtn || !modeToggle || !squaresSlider || !squaresCount || !controlsContainer) {
       throw new Error('Required elements not found');
     }
 
@@ -184,6 +338,7 @@
     let gridPositions: Array<{ left: number; top: number }> = [];
     let currentPositionIndices: number[] = [];
     let isOptimized = false;
+    let numSquares = 121;
     let animationTimeoutId: number | undefined;
     let optimizedResetTimeoutId: number | undefined;
     let unoptimizedResetTimeoutId: number | undefined;
@@ -193,10 +348,10 @@
       const containerWidth = container.clientWidth;
       const itemWidth = SQUARE_SIZE + GAP;
       const cols = Math.max(1, Math.floor(containerWidth / itemWidth));
-      const rows = Math.ceil(NUM_SQUARES / cols);
+      const rows = Math.ceil(numSquares / cols);
       container.style.height = `${rows * itemWidth - GAP}px`;
       
-      for (let i = 0; i < NUM_SQUARES; i++) {
+      for (let i = 0; i < numSquares; i++) {
         const col = i % cols;
         const row = Math.floor(i / cols);
         gridPositions.push({
@@ -207,9 +362,15 @@
     };
 
     const createSquares = () => {
-      for (let i = 0; i < NUM_SQUARES; i++) {
+      // Clear existing squares
+      squares.forEach(square => square.remove());
+      squares = [];
+      
+      for (let i = 0; i < numSquares; i++) {
         const square = document.createElement('div');
-        square.classList.add('square-base', 'square-unoptimized');
+        square.classList.add('square-base');
+        // Add the correct class based on current mode
+        square.classList.add(isOptimized ? 'square-optimized' : 'square-unoptimized');
         square.textContent = String(i + 1);
         container.appendChild(square);
         squares.push(square);
@@ -231,11 +392,25 @@
       if (optimizedResetTimeoutId) clearTimeout(optimizedResetTimeoutId);
       squares.forEach((square, i) => {
         const { top, left } = gridPositions[currentPositionIndices[i]];
-        square.style.transform = `translate(${left}px, ${top}px)`;
+        
+        if (animate) {
+          // Reset transform to 0,0 first to ensure transition is visible
+          square.style.transform = 'translate(0px, 0px)';
+          square.style.opacity = '0.7';
+          
+          // Force a reflow to ensure the reset is applied
+          square.offsetHeight;
+          
+          // Then apply the new position
+          square.style.transform = `translate(${left}px, ${top}px)`;
+        } else {
+          square.style.transform = `translate(${left}px, ${top}px)`;
+        }
+        
         square.style.top = '';
         square.style.left = '';
-        if (animate) square.style.opacity = '0.7';
       });
+      
       if (animate) {
         optimizedResetTimeoutId = window.setTimeout(() => {
           squares.forEach(s => s.style.opacity = '1');
@@ -283,8 +458,10 @@
       // Update shuffle button color
       if (isOptimized) {
         shuffleBtn.classList.add('green');
+        controlsContainer.classList.add('optimized');
       } else {
         shuffleBtn.classList.remove('green');
+        controlsContainer.classList.remove('optimized');
       }
 
       
@@ -295,10 +472,27 @@
       }
     };
 
+    const updateSquaresCount = (newCount: number) => {
+      numSquares = newCount;
+      squaresCount.textContent = String(newCount);
+      
+      // Recreate squares and positions
+      createSquares();
+      calculateGridPositions();
+      currentPositionIndices = Array.from({ length: numSquares }, (_, i) => i);
+      
+      // Apply current mode - this will use the correct positioning method
+      if (isOptimized) {
+        applyPositionsOptimized(false);
+      } else {
+        applyPositionsUnoptimized(false);
+      }
+    };
+
     // Initialize
     calculateGridPositions();
     createSquares();
-    currentPositionIndices = Array.from({ length: NUM_SQUARES }, (_, i) => i);
+    currentPositionIndices = Array.from({ length: numSquares }, (_, i) => i);
     // Initial placement without animation
     applyPositionsUnoptimized(false);
 
@@ -317,5 +511,8 @@
     });
     modeToggle.addEventListener('change', () => {
       setMode(modeToggle.checked);
+    });
+    squaresSlider.addEventListener('input', () => {
+      updateSquaresCount(parseInt(squaresSlider.value));
     });
   </script>
