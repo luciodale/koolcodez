@@ -1,6 +1,6 @@
 ---
 title: "Inside the Frame: What Really Happens When the Browser Renders"
-description: "Understand how rendering works and make your animations feel effortless."
+description: "Understand how rendering works through a practical example."
 pubDate: "October 7 2025"
 heroImage: "../../assets/hero-inside-frame.webp"
 ---
@@ -14,64 +14,136 @@ import SquaresRendering from "../../components/articles/SquaresRendering.astro";
 
 *tldr;* [go to the DEMO](#demo)
 
-Whether you are using a full framework or vanilla JavaScript, the browser follows the same principles in how it operates. Understanding these principles can make the difference between a janky, frustrating experience and a smooth, enjoyable one.
+Framework or vanilla JS, the browser plays by its own rules. Understanding them is the difference between a janky mess and a smooth experience.
 
-## Quick corrections and facts
+Many articles cover the theory of the rendering pipeline. This one shows it. Let's quickly cover some facts and then get our hands dirty.
 
-JavaScript runs on a single thread, and it must yield control back to the browser, so that multiple tasks can run.
+## A Frame in 16 Milliseconds
 
-The browser rendering cycle for a single frame looks like this:
+JavaScript runs on a single thread and must yield control to the browser to get anything drawn.
 
-1. **style calculation**
-2. **reflow** (also called layout) – computes positions and sizes
-3. **repaint** (also called paint) – paints pixels into layers
-4. **composite** – composes layers together, often on the GPU
+Here is what happens during one frame:
 
-**Frame budget math:** There are 1000 milliseconds in one second. Dividing by 60 frames per second gives 1000 / 60 = 16.6666666667 milliseconds per frame, which we round to 16.67 milliseconds. If your main thread work plus layout and paint exceed about 16.67 ms, you will drop frames at 60 fps.
+1. **Style Calculation** - The browser figures out which CSS rules apply and computes the final styles, resolving cascades, inheritance, and computed values.
+2. **Reflow** (also called layout) – Calculates geometry such as width, height, and position. A reflow can ripple through parent and child elements, making it costly.
+3. **Repaint** (also called paint) – Draws pixels for backgrounds, borders, text, and shadows. Complex visuals like gradients or shadows slow this step.
+4. **Composite** – Takes painted layers and draws them to the screen. It is much cheaper than layout or paint.
 
-Let’s better explain what each step of the rendering cycle does.
-
-* **Style Calculation:** The browser figures out which CSS rules apply to each element and computes their final styles. This includes resolving cascading rules, inheritance, and any computed values such as percentages or `em` units.
-* **Reflow:** This calculates the **geometry** of all elements on the page, including size (width, height) and position (top, left, etc.). A reflow on one element can trigger reflows on its parent and children, making it expensive.
-* **Repaint:** This fills in the pixels for each element, including backgrounds, text colors, borders, and shadows. Repainting is also costly, especially with complex styles such as gradients or shadows.
-* **Composite:** This is where the browser takes the painted layers and draws them to the screen in order. This is the cheapest step of the three. By sticking to properties that only trigger compositing, we can achieve very smooth animations.
+**Frame budget math:** There are 1000 milliseconds in one second. Dividing by 60 frames per second gives 1000 / 60 = 16.6666666667 milliseconds per frame, which we round to 16.67 milliseconds. 
+If your work takes longer than that, you will drop frames.
 
 ## What matters in practice
 
-- **Scripting time** is the time your JavaScript holds the main thread. Heavy synchronous work blocks layout and paint until it finishes.
-- Changing layout-affecting properties such as `top`, `left`, `width`, `height`, or `margin` forces layout and can cascade through the tree.
-- Changing paint-only properties such as `background-color`, `box-shadow`, or `border-radius` triggers painting but not layout.
-- Changing `transform` or `opacity` is often handled by the compositor and can avoid both layout and paint if the browser creates a layer for the element.
+Modern browsers handle simple pages easily, but once you add animations or many elements, performance limits appear. Knowing which properties trigger which steps can help you keep things fast.
 
-On modern browsers and powerful machines, these steps are fast enough for simple sites. But when we start building complex animations or dealing with many elements, these bottlenecks become visible.
-
-It is worth testing and learning how to exploit certain properties to dramatically improve performance.
+- **Scripting time** is the time your JavaScript holds the main thread. Heavy work delays layout and paint.
+- Changing layout properties like `top`, `left`, `width`, `height`, or `margin` triggers reflow.
+- Changing paint only properties `background-color`, `box-shadow`, `border-radius` triggers repaint but not reflow.
+- Changing transform or opacity is usually handled by the GPU, skipping layout and paint.
 
 ## The Use Case
 
-To demonstrate the impact of these rendering steps, we will build a simple demo with several squares that can be animated and shuffled around.
+To demonstrate this, we will build a small demo with squares that can move and shuffle.
 
-First, we will implement a **bad** example. We will animate the squares using the `top` and `left` properties, which trigger a reflow on every frame. We will also add a `box-shadow` transition, which stresses the repaint step.
+First, the **unoptimized**  version. It uses `top` and `left`, which cause reflows on every frame. A `box-shadow` transition adds paint work.
 
-Then, we will refactor to a **good** example. We will use the `transform` and `opacity` properties. These are GPU accelerated and only trigger the composite step, resulting in much smoother animation with a smaller performance footprint.
+Then, the **optimized** version. It uses `transform` and `opacity`, which stay on the GPU for smoother motion.
 
-Here’s the demo. You can toggle between the "Bad" and "Good" implementations to see the performance difference. The effect is especially clear when you spam the shuffle button.
+You can switch between `Unoptimized` and `Optimized` below and press shuffle a few times. The difference is clear, especially as you add more squares.
 
 <div id="demo">
   <SquaresRendering />
 </div>
 
-The FPS meter in developer tools clearly shows the difference.  
-We hit barely 20 FPS with the "Bad" implementation and reach a steady 60 FPS with the "Good" one.
+## Unoptimized Implementation
+
+```javascript
+function BadSquaresComponent() {
+  const [positions, setPositions] = useState(initialPositions);
+  const [isAnimating, setIsAnimating] = useState(false);
+  
+    const shuffleSquares = () => {
+    setIsAnimating(true);
+    // Placeholder that generates random positions
+    const newPositions = computeNewPositions(); 
+    setPositions(newPositions);
+    
+    setTimeout(() => setIsAnimating(false), 500);
+  };
+  
+  return (
+    <div>
+      <div onClick={shuffleSquares}> shuffle squares </div>
+      {positions.map((pos, index) => (
+        <div 
+          key={index}
+          style={{
+            position: 'absolute',
+            top: `${pos.top}px`, // Triggers reflow
+            left: `${pos.left}px`, // Triggers reflow
+            boxShadow: 
+              isAnimating ? '0 14px 28px rgba(239,68,68,0.45)'
+              : 'none' // Triggers Repaint
+          }}
+        >
+          {index + 1}
+        </div>
+      ))}
+    </div>
+  );
+}
+```
+    
+## Optimized Implementation
+
+```javascript
+function GoodSquaresComponent() {
+  const [positions, setPositions] = useState(initialPositions);
+  const [isAnimating, setIsAnimating] = useState(false);
+   
+  const shuffleSquares = () => {
+    setIsAnimating(true);
+    // Placeholder that generates random positions
+    const newPositions = computeNewPositions(); 
+    setPositions(newPositions);
+    
+    setTimeout(() => setIsAnimating(false), 500);
+  };
+  
+  return (
+    <div>
+      <div onClick={shuffleSquares}> shuffle squares </div>
+      {positions.map((pos, index) => (
+        <div 
+          key={index}
+          style={{
+            position: 'absolute',
+            // GPU accelerated
+            transform: `translate(${pos.left}px, ${pos.top}px)`, 
+            opacity: isAnimating ? 0.7 : 1 // GPU accelerated
+          }}
+        >
+          {index + 1}
+        </div>
+      ))}
+    </div>
+  );
+}
+```
+
+## Monitoring performance
+
+You can watch the animation and also use the FPS meter in DevTools (`Cmd+Shift+P` → “FPS meter”).
+When running the demo, the meter shows the live frame rate. Below are screenshots of both versions: 
 
 <div class="flex">
 <Image class="w-1/2 shrink-0" alt='slow FPS' src={slowFPS} />
 <Image class="w-1/2 shrink-0" alt='fast FPS' src={fastFPS} />
 </div>
 
+The unoptimized code barely reached 21 FPS when shuffling fast. The optimized version stayed at 60 FPS without breaking a sweat.
+
 ## Conclusion
 
-Smooth performance is not magic. It comes from understanding what the browser is doing under the hood and working with it rather than against it.  
-If you animate layout or paint properties, the browser has to do heavy recalculations each frame. But if you stick to compositor-friendly properties like `transform` and `opacity`, you hand the work off to the GPU, freeing the main thread and keeping animations fluid.  
-
-Mastering these details is one of the simplest yet most powerful ways to make your interfaces feel professional and responsive.
+Smooth performance is not magic. It comes from understanding what the browser is doing and working with it, not against it. Animating layout or paint properties makes the browser recalculate and repaint every frame. Using properties like `transform` and `opacity` sends that work to the GPU, freeing the main thread and keeping motion fluid.
+Knowing these details can be critical in animation heavy applications.
