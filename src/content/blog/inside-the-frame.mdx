@@ -41,7 +41,7 @@ Modern browsers handle simple pages easily, but once you add animations or many 
 - Changing paint only properties `background-color`, `box-shadow`, `border-radius` triggers repaint but not reflow.
 - Changing transform or opacity is usually handled by the GPU, skipping layout and paint.
 
-## The Use Case
+## The Use Case (tested on Chrome)
 
 To demonstrate this, we will build a small demo with squares that can move and shuffle.
 
