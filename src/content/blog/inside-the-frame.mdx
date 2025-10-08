@@ -49,6 +49,8 @@ First, the **unoptimized**  version. It uses `top` and `left`, which cause reflo
 Then, the **optimized** version. It uses `transform` and `opacity`, which stay on the GPU for smoother motion.
 
 You can switch between `Unoptimized` and `Optimized` below and press shuffle a few times. The difference is clear, especially as you add more squares.
+It is interesting to note however, that firefox seems to handle the unoptimized version better than chrome. 
+This shows that the browser engine used to render the page plays a big role in performance issues, and it is always worth running performance tests across multiple browsers.
 
 <div id="demo">
   <SquaresRendering />
