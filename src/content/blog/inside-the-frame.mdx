@@ -14,9 +14,7 @@ import SquaresRendering from "../../components/articles/SquaresRendering.astro";
 
 *tldr;* [go to the DEMO](#demo)
 
-Framework or vanilla JS, the browser plays by its own rules. Understanding them is the difference between a janky mess and a smooth experience.
-
-Many articles cover the theory of the rendering pipeline. This one shows it. Let's quickly cover some facts and then get our hands dirty.
+Framework or vanilla JS, the browser plays by its own rules. Understanding them can be the difference between a janky mess and a smooth experience.
 
 ## A Frame in 16.67 Milliseconds
 
@@ -28,10 +26,10 @@ Here is what happens during one frame:
 1. **Style Calculation** - The browser figures out which CSS rules apply and computes the final styles, resolving cascades, inheritance, and computed values.
 2. **Reflow** (also called layout) – Calculates geometry such as width, height, and position. A reflow can ripple through parent and child elements, making it costly.
 3. **Repaint** (also called paint) – Draws pixels for backgrounds, borders, text, and shadows. Complex visuals like gradients or shadows slow this step.
-4. **Composite** – Takes painted layers and draws them to the screen. It is much cheaper than reflow or repaint.
+4. **Composite** – Takes painted layers and draws them to the screen. This step is much cheaper than reflow or repaint.
 
-**Frame budget math:** There are 1000 milliseconds in one second. Dividing by 60 frames per second gives **1000/60 = 16.6666666667** milliseconds per frame, which we round to 16.67 milliseconds. 
-If your work takes longer than that, you will drop frames.
+**Frame budget math:** There are 1000 milliseconds in one second. Dividing by 60 frames per second gives **1000/60 = 16.67** milliseconds per frame. 
+If the above steps take longer than this to execute, the browser will drop frames resulting in 'jank'.
 
 ## What matters in practice
 
@@ -40,7 +38,7 @@ Modern browsers handle simple pages easily, but once you add animations or many 
 - **Scripting time** is the time your JavaScript holds the main thread. Heavy work delays reflow and repaint.
 - Changing properties like `top`, `left`, `width`, `height`, or `margin` triggers reflow.
 - Changing paint only properties `background-color`, `box-shadow`, `border-radius` triggers repaint but not reflow.
-- Changing transform or opacity is usually handled by the GPU, skipping reflow and repaint.
+- Changing `transform` or `opacity` is usually handled by the GPU, skipping reflow and repaint.
 
 ## The Use Case (tested on Chrome)
 
