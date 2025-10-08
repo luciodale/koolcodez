@@ -24,22 +24,23 @@ JavaScript runs on a single thread and must yield control to the browser to get 
 
 Here is what happens during one frame:
 
+0. **Scripting** - The JavaScript engine runs your code.
 1. **Style Calculation** - The browser figures out which CSS rules apply and computes the final styles, resolving cascades, inheritance, and computed values.
 2. **Reflow** (also called layout) – Calculates geometry such as width, height, and position. A reflow can ripple through parent and child elements, making it costly.
 3. **Repaint** (also called paint) – Draws pixels for backgrounds, borders, text, and shadows. Complex visuals like gradients or shadows slow this step.
-4. **Composite** – Takes painted layers and draws them to the screen. It is much cheaper than layout or paint.
+4. **Composite** – Takes painted layers and draws them to the screen. It is much cheaper than reflow or repaint.
 
-**Frame budget math:** There are 1000 milliseconds in one second. Dividing by 60 frames per second gives 1000 / 60 = 16.6666666667 milliseconds per frame, which we round to 16.67 milliseconds. 
+**Frame budget math:** There are 1000 milliseconds in one second. Dividing by 60 frames per second gives **1000/60 = 16.6666666667** milliseconds per frame, which we round to 16.67 milliseconds. 
 If your work takes longer than that, you will drop frames.
 
 ## What matters in practice
 
 Modern browsers handle simple pages easily, but once you add animations or many elements, performance limits appear. Knowing which properties trigger which steps can help you keep things fast.
 
-- **Scripting time** is the time your JavaScript holds the main thread. Heavy work delays layout and paint.
-- Changing layout properties like `top`, `left`, `width`, `height`, or `margin` triggers reflow.
+- **Scripting time** is the time your JavaScript holds the main thread. Heavy work delays reflow and repaint.
+- Changing properties like `top`, `left`, `width`, `height`, or `margin` triggers reflow.
 - Changing paint only properties `background-color`, `box-shadow`, `border-radius` triggers repaint but not reflow.
-- Changing transform or opacity is usually handled by the GPU, skipping layout and paint.
+- Changing transform or opacity is usually handled by the GPU, skipping reflow and repaint.
 
 ## The Use Case (tested on Chrome)
 
