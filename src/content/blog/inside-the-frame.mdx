@@ -10,7 +10,7 @@ import { Image } from 'astro:assets'
 import slowFPS from '../../assets/20.webp'
 import fastFPS from '../../assets/60.webp'
 
-import SquaresRendering from "../../components/articles/SquaresRendering.astro";
+import { SquaresRendering } from "../../components/articles/SquaresRendering";
 
 *tldr;* [go to the DEMO](#demo)
 
@@ -52,9 +52,16 @@ You can switch between `Unoptimized` and `Optimized` below and press shuffle a f
 It is interesting to note however, that firefox seems to handle the unoptimized version better than chrome. 
 This shows that the browser engine used to render the page plays a big role in performance issues, and it is always worth running performance tests across multiple browsers.
 
+## EDIT:
+
+It turns out that `box-shadow` is almost exclusively affecting the unoptimized version. Reflow does happen, but it is so fast that there are virtually no differences between the two versions.
+
+You can turn off the box-shadow, and see that both versions perform equally well.
+
 <div id="demo">
-  <SquaresRendering />
+  <SquaresRendering client:only="react" />
 </div>
+
 
 ## Unoptimized Implementation
 
