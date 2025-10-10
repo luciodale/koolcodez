@@ -7,8 +7,10 @@ heroImage: "../../assets/hero-inside-frame.webp"
 
 
 import { Image } from 'astro:assets'
-import slowFPS from '../../assets/20.webp'
-import fastFPS from '../../assets/60.webp'
+import slowFPS from '../../assets/fps-unoptimized.webp'
+import fastFPS from '../../assets/fps-optimized.webp'
+import reflowUnoptimized from '../../assets/performance-monitor-unoptimized.webp'
+import reflowOptimized from '../../assets/performance-monitor-optimized.webp'
 
 import { SquaresRendering } from "../../components/articles/SquaresRendering";
 
@@ -44,57 +46,81 @@ Modern browsers handle simple pages easily, but once you add animations or many 
 
 To demonstrate this, we will build a small demo with squares that can move and shuffle.
 
-First, the **unoptimized**  version. It uses `top` and `left`, which cause reflows on every frame. A `box-shadow` transition adds paint work.
+First, the **unoptimized**  version. It uses `top` and `left`, which cause reflows on every frame.
 
-Then, the **optimized** version. It uses `transform` and `opacity`, which stay on the GPU for smoother motion.
+Then, the **optimized** version, which uses `transform` and `opacity`.
 
-You can switch between `Unoptimized` and `Optimized` below and press shuffle a few times. The difference is clear, especially as you add more squares.
-It is interesting to note however, that firefox seems to handle the unoptimized version better than chrome. 
-This shows that the browser engine used to render the page plays a big role in performance issues, and it is always worth running performance tests across multiple browsers.
+You can tweak the number of squares and the `shadow` toggle to compare the examples. Also, there is a resize toggle to fit more squares on the screen, when the number grows very large.
 
-## EDIT:
+Feel free to spam the shuffle button to see any difference between the two versions.
 
-It turns out that `box-shadow` is almost exclusively affecting the unoptimized version. Reflow does happen, but it is so fast that there are virtually no differences between the two versions.
-
-You can turn off the box-shadow, and see that both versions perform equally well.
 
 <div id="demo">
   <SquaresRendering client:only="react" />
 </div>
 
+## Findings 
 
-## Unoptimized Implementation
+Modern browsers have become much better at handling rendering. In fact, when shadows are not toggled, the unoptimized code still performs very well unless we drastically increase the number of squares.
+
+From the performance monitor, we can see that **reflow** is indeed triggered in the unoptimized version:
+
+<Image src={reflowUnoptimized} alt="reflow screenshot" />
+
+For the optimized version, however, **reflow is completely skipped**. Interestingly, the transitions remain smooth even when shadows are enabled:
+
+<Image src={reflowOptimized} alt="reflow screenshot" />
+
+Both screenshots capture what happens when repeatedly spamming the shuffle button over time. Of course, results may vary depending on your hardware. These were taken on a Mac mini M1.
+
+A final note on layout: using `position: absolute` helps reduce rendering strain because each square is independent. In other words, changes to `top` and `left` only affect the square itself, not other elements on the page.
+
+By contrast, moving elements that trigger full-page layout recalculations can significantly worsen reflow and repaint costs. For this demo, we’re keeping the focus on isolated elements to better highlight the rendering differences.
+
+## Implementations
+
+The following snippets were stripped down to the bare minimum to demonstrate the differences in implementations.
+To see the full demo code, [go to the repository](https://github.com/luciodale/koolcodez/blob/main/src/components/articles/SquaresRendering.tsx).
+
+### Unoptimized Implementation
 
 ```javascript
 function BadSquaresComponent() {
-  const [positions, setPositions] = useState(initialPositions);
+  const [squares, setSquares] = useState(initialSquares);
   const [isAnimating, setIsAnimating] = useState(false);
-  
-    const shuffleSquares = () => {
+  const refDebounceShuffle = useRef<NodeJS.Timeout | null>(null);
+  const count = squares.length;
+
+    const onShuffle = () => {
+      // generate random indices
+    const shuffledSquares = shuffleIndices(count);
+
+    setSquares(shuffledSquares);  
     setIsAnimating(true);
-    // Placeholder that generates random positions
-    const newPositions = computeNewPositions(); 
-    setPositions(newPositions);
-    
-    setTimeout(() => setIsAnimating(false), 500);
-  };
+
+    if (refDebounceShuffle.current) {
+        clearTimeout(refDebounceShuffle.current);
+    } 
+
+    refDebounceShuffle.current = setTimeout(() => 
+        setIsAnimating(false) ,DURATION_MS);
+    };
   
   return (
     <div>
-      <div onClick={shuffleSquares}> shuffle squares </div>
-      {positions.map((pos, index) => (
+      <div onClick={onShuffle}> shuffle squares </div>
+      {squares.map((square) => (
         <div 
-          key={index}
+          key={square}
           style={{
             position: 'absolute',
-            top: `${pos.top}px`, // Triggers reflow
-            left: `${pos.left}px`, // Triggers reflow
-            boxShadow: 
-              isAnimating ? '0 14px 28px rgba(239,68,68,0.45)'
-              : 'none' // Triggers Repaint
+            top: `${square.top}px`, // Triggers reflow
+            left: `${square.left}px`, // Triggers reflow
+            boxShadow: '0 14px 28px rgba(239,68,68,0.45)', // Triggers Repaint
+            transition: "top 250ms ease, left 250ms ease",
           }}
         >
-          {index + 1}
+          {square + 1}
         </div>
       ))}
     </div>
@@ -106,29 +132,39 @@ function BadSquaresComponent() {
 
 ```javascript
 function GoodSquaresComponent() {
-  const [positions, setPositions] = useState(initialPositions);
+  const [squares, setSquares] = useState(initialSquares);
   const [isAnimating, setIsAnimating] = useState(false);
-   
-  const shuffleSquares = () => {
+  const refDebounceShuffle = useRef<NodeJS.Timeout | null>(null);
+  const count = indices.length;
+
+    const onShuffle = () => {
+      // generate random indices
+    const shuffledSquares = shuffleIndices(count);
+
+    setSquares(shuffledSquares);  
     setIsAnimating(true);
-    // Placeholder that generates random positions
-    const newPositions = computeNewPositions(); 
-    setPositions(newPositions);
-    
-    setTimeout(() => setIsAnimating(false), 500);
-  };
+
+    if (refDebounceShuffle.current) {
+        clearTimeout(refDebounceShuffle.current);
+    } 
+
+    refDebounceShuffle.current = setTimeout(() => 
+        setIsAnimating(false) ,DURATION_MS);
+    };
   
   return (
     <div>
-      <div onClick={shuffleSquares}> shuffle squares </div>
-      {positions.map((pos, index) => (
+      <div onClick={onShuffle}> shuffle squares </div>
+      {squares.map((square) => (
         <div 
           key={index}
           style={{
             position: 'absolute',
             // GPU accelerated
-            transform: `translate(${pos.left}px, ${pos.top}px)`, 
-            opacity: isAnimating ? 0.7 : 1 // GPU accelerated
+            transform: `translate(${index.left}px, ${index.top}px)`, 
+            opacity: isAnimating ? 0.9 : 1 // GPU accelerated
+            boxShadow: "0 14px 28px rgba(239,68,68,0.45)",
+            transition: "transform 250ms ease, opacity 250ms ease"
           }}
         >
           {index + 1}
@@ -139,19 +175,21 @@ function GoodSquaresComponent() {
 }
 ```
 
-## Monitoring performance
+## Monitoring FPS
 
 You can watch the animation and also use the FPS meter in DevTools (`Cmd+Shift+P` → “FPS meter”).
-When running the demo, the meter shows the live frame rate. Below are screenshots of both versions: 
+When running the demo, the meter shows the live frame rate. 
 
-<div class="flex">
-<Image class="w-1/2 shrink-0" alt='slow FPS' src={slowFPS} />
-<Image class="w-1/2 shrink-0" alt='fast FPS' src={fastFPS} />
-</div>
+A noticeable difference only appears when we max out the number of squares. 
+The following screenshots were taken with the shadow disabled.
 
-The unoptimized code barely reached 21 FPS when shuffling fast. The optimized version stayed at 60 FPS without breaking a sweat.
+with unoptimized code:
+<Image alt='slow FPS' src={slowFPS} />
+
+with optimized code:
+<Image alt='fast FPS' src={fastFPS} />
+
 
 ## Conclusion
 
-Smooth performance is not magic. It comes from understanding what the browser is doing and working with it, not against it. Animating layout or paint properties makes the browser recalculate and repaint every frame. Using properties like `transform` and `opacity` sends that work to the GPU, freeing the main thread and keeping motion fluid.
-Knowing these details can be critical in animation heavy applications.
+Smooth performance is not magic. It comes from understanding what the browser is doing and profiling against it. In fact, it turns out that for small animations, browsers have gotten so fast that the difference is negligible.
