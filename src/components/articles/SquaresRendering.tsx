@@ -1,10 +1,10 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 
 type Position = { left: number; top: number };
 
 const SQUARE_SIZE = 48;
 const GAP = 10;
-const DURATION_MS = 250;
+const DURATION_MS = 500;
 const SQUARE_NUMBER = 121;
 const COLS = 11;
 const COUNT_THRESHOLD1 = 130;
@@ -71,7 +71,7 @@ function BadSquaresInner({ count, indices, positions, rows, showShadow, squareSi
               color: "white",
               top,
               left,
-              transition: "top 250ms ease, left 250ms ease",
+              transition: "top 500ms ease, left 500ms ease",
               boxShadow: showShadow ? "0 14px 28px rgba(239,68,68,0.45)" : undefined,
             }}
           >
@@ -105,7 +105,7 @@ function GoodSquaresInner({ count, indices, positions, rows, isAnimating, showSh
               color: "white",
               transform: `translate(${left}px, ${top}px)`,
               opacity: isAnimating ? 0.9 : 1,
-              transition: "transform 250ms ease, opacity 250ms ease",
+              transition: "transform 500ms ease, opacity 500ms ease",
               boxShadow: showShadow ? "0 14px 28px rgba(239,68,68,0.45)" : undefined,
             }}
           >
