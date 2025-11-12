@@ -45,19 +45,22 @@ const recentPosts = sortedPosts.slice(0, 3);
 
 				<section class="py-8 md:py-12">
 					<SectionHeading>Some open source</SectionHeading>
-					<div class="flex flex-col items-center md:items-stretch md:flex-row justify-center gap-6 md:gap-12 md:px-12">
+					<div class="flex flex-col items-center xl:items-stretch xl:flex-row justify-center gap-6 md:gap-8 xl:px-8">
+						<OpenSourceCard repoUrl="https://github.com/luciodale/swipe-bar">
+							<div slot="title">swipe bar</div>
+							<div slot="description">An intuitive, native-app-like experience for mobile and desktop sidebars.</div>
+							<div slot="language">Typescript</div>
+						</OpenSourceCard>
 						<OpenSourceCard repoUrl="https://github.com/luciodale/react-searchable-dropdown">
 							<div slot="title">react searchable dropdown</div>
 							<div slot="description">Single and multi selection, virtualized, new option creation, search, and more.</div>
 							<div slot="language">Typescript</div>
-							<div slot="stars">88</div>
 						</OpenSourceCard>
-					<OpenSourceCard repoUrl="https://github.com/luciodale/fork">
+						<OpenSourceCard repoUrl="https://github.com/luciodale/fork">
 							<div slot="title">fork</div>
 							<div slot="description">A headless Clojurescript form management library for Re-frame and Reagent.</div>
 							<div slot="language">Clojurescript</div>
-							<div slot="stars">227</div>
-						  </OpenSourceCard>
+						</OpenSourceCard>
 					</div>
 				</section>
 

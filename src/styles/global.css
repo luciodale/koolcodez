@@ -52,3 +52,32 @@ body, html {
     width: 100%;
   }
 }
+
+/* Liquid Glass Border Effect */
+.liquid-glass-border {
+  position: relative;
+  background-clip: padding-box;
+}
+
+.liquid-glass-border::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 0.5rem;
+  padding: 0.5px;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.4) 0%,
+    rgba(255, 255, 255, 0.15) 25%,
+    rgba(255, 255, 255, 0.05) 50%,
+    rgba(255, 255, 255, 0.15) 75%,
+    rgba(255, 255, 255, 0.4) 100%
+  );
+  -webkit-mask: 
+    linear-gradient(#fff 0 0) content-box, 
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+  z-index: 1;
+}

@@ -1,0 +1,229 @@
+---
+title: "How Close Can a PWA Get to a Native App? Closer Than You Think"
+description: "I set out to see how far the web can go toward feeling native. Here’s what I found while building a PWA demo that might just make a full rewrite unnecessary."
+pubDate: "November 13 2025"
+heroImage: "../../assets/hero-pwa.webp"
+---
+
+### TLDR
+
+👉 **<a href="https://responsive-chat-skeleton.netlify.app/" target="_blank" rel="noopener noreferrer">LIVE DEMO</a>**
+📦 **<a href="https://github.com/luciodale/chat-skeleton" target="_blank" rel="noopener noreferrer">Repo</a>**
+
+I explored a few key features that help PWAs feel more native:
+- Swipeable sidebars with smooth transitions
+- PWA install support
+- Custom icons and splash screen
+- Full use of safe areas
+- Speech to text and gallery upload
+- Native selects and form elements
+- Automatic dark and light themes
+
+The rest of this post walks through each part in more detail.
+
+I only have access to my personal iPhone, so I've only tested the mobile version on it. Sorry Android users.
+
+---
+
+### The starting point
+
+At work, we found ourselves asking one of those classic questions: "Should we move to a native app instead of relying on our website and PWA?"
+
+Rather than just guessing, I decided to build a small demo to see how close we could get to a native feel using just the browser.
+
+It got close enough that a rewrite might not be worth the effort. The rest of this post shows the main things that made that possible and the few surprises I found along the way.
+
+---
+
+### Swiping sidebars
+
+The first thing I wanted was swipeable left and right sidebars, the kind of interaction mobile apps make look effortless.
+
+I started with a simple React approach: updating state on mouse or touch move callbacks and using it to transform the sidebar.
+
+```typescript
+const [x, setX] = useState(0)
+
+useEffect(() => {
+. const handleMove = e => setX(e.clientX)
+. window.addEventListener('mousemove', handleMove)
+. return () => window.removeEventListener('mousemove', handleMove)
+}, [])
+
+return <div style={{ transform: `translateX(${x}px)` }} />
+```
+
+This is just a mock example, but it shows the idea. It actually worked fine, and performance wasn't bad. Still, I kept thinking about how it would perform with a more complex component tree.
+
+The real issue is that touch and mouse `move` events fire constantly. Tying this directly to React state means triggering a potential re-render on every single fired event. 
+
+While that's okay for a simple `<div>`, the real sidebar was going to hold many components. This approach would eventually cause needless re-renders and overhead for that entire component tree, unless everything was perfectly memoized.
+
+So I moved the transform updates out of React and handled them directly in the callbacks, manipulating the DOM instead. This logic eventually led to a small library I called <a href="https://swipe-bar.netlify.app/" target="_blank" rel="noopener noreferrer">swipe-bar</a>.
+
+---
+
+### Adding PWA support
+
+Once the swiping felt natural, the next step was making it feel more like an app. I wanted to get rid of the browser's top and bottom bars and, crucially, override native gestures. 
+
+If you've ever used a site on mobile Safari, you know that swiping from the left edge triggers back navigation. That's not ideal for a UI with a left sidebar. It was time to make it a real PWA.
+
+Using Vite, this turned out to be straightforward for my basic needs thanks to <a href="https://vite-pwa-org.netlify.app/guide/" target="_blank" rel="noopener noreferrer">their built-in support</a>.
+
+If you're curious, <a href="https://github.com/luciodale/chat-skeleton/blob/main/vite.config.ts" target="_blank" rel="noopener noreferrer">here's what my vite config</a> ended up looking like.
+
+One thing to note: adding a site to your home screen from the browser requires you (at least on an iOS device) to click the share button and then "Add to Home Screen" or similar.
+
+---
+
+### Icons
+
+A proper PWA needs an icon set, and this is where things got more complicated than I expected.
+
+After a bit of googling, I realized you're supposed to provide multiple icon sizes depending on the device. There's a whole set of articles and generator websites out there on the topic, but I ended up creating just a few with my limited illustration skills.
+
+These links in the `<head>` were enough for the basics:
+
+```html
+<link rel="icon" type="image/png" href="/favicon/favicon-96x96.png" sizes="96x96" />
+<link rel="icon" type="image/svg+xml" href="/favicon/favicon.svg" />
+<link rel="shortcut icon" href="/favicon/favicon.ico" />
+<link rel="apple-touch-icon" sizes="180x180" href="/favicon/apple-touch-icon.png" />
+```
+
+And to properly configure the `manifest.json` file, I added these to the Vite PWA config:
+
+```typescript
+icons: [
+          {
+            src: "favicon/web-app-manifest-192x192.png",
+            sizes: "192x192",
+            type: "image/png",
+            purpose: "any maskable",
+          },
+          {
+            src: "favicon/web-app-manifest-512x512.png",
+            sizes: "512x512",
+            type: "image/png",
+            purpose: "any",
+          },
+        ],
+```
+
+---
+
+### Theme color
+
+These meta tags are small but important:
+
+```html
+<meta name="theme-color" content="#FFFFFF" media="(prefers-color-scheme: light)" />
+<meta name="theme-color" content="#212121" media="(prefers-color-scheme: dark)" />
+```
+
+They control how the surrounding browser UI (like the status bar and address bar) blends with your app.
+
+Without them, the app can look disconnected from the rest of the system UI. Setting both dark and light values helps match the current theme seamlessly, which makes everything feel more cohesive.
+
+---
+
+### Apple specific tags
+
+If you want things like splash screens and full-screen mode to work correctly on iOS, you have to add these:
+
+```html
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="Stylus AI" />
+```
+
+Without `apple-mobile-web-app-capable`, the splash screen will definitely not work. I learned this the hard way after spending an hour debugging the issue.
+
+---
+
+### Splash screen
+
+Speaking of splash screens, they add an important touch of polish. It's that short moment where your app loads in the background before showing the main view.
+
+The number of required image sizes (especially for Apple devices) is surprising, so I went for a <a href="https://github.com/avadhesh18/iosPWASplash" target="_blank" rel="noopener noreferrer">simple tool</a> that does it automatically at runtime. It figures out the screen dimensions and generates a clean splash screen on the fly.
+
+Here's how you use it in your `index.html`:
+
+```html
+<script src="/js/splash-screen.js"></script>
+<script>
+     <!-- The second argument is the background color -->
+    iosPWASplash("/favicon/web-app-manifest-512x512.png", "#000000");
+</script>
+```
+
+
+---
+
+### Native features
+
+To push the experience even closer to native, I explored a few built-in browser APIs.
+
+**Speech to text**
+Using the <a href="https://developer.mozilla.org/en-US/docs/Web/API/Web_Speech_API" target="_blank" rel="noopener noreferrer">Web Speech API</a>, you can capture voice input directly in the browser. It works well on Chrome, although the model used on iOS still felt less accurate. Still, it's a neat touch that works out of the box without any extra setup.
+
+**Image upload**
+The <a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input/file" target="_blank" rel="noopener noreferrer">File Input API</a> lets users upload photos or take new ones from their gallery. It's simple, reliable, and feels native in most browsers. No custom components needed.
+
+---
+
+### Safe area insets
+
+Modern phones have notches, rounded corners, and status bars that need a bit of extra care.
+
+To make sure content doesn't overlap those areas, you first need to include this meta tag:
+
+```html
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+```
+
+`viewport-fit=cover` ensures the layout stretches to fill the entire screen. Then, you can use CSS environment variables to respect the safe areas:
+
+```css
+padding-top: var(--safe-area-inset-top);
+```
+
+There are also inset variables for right, left, and bottom if you need them. It's a simple way to make sure your content looks right on any device.
+
+---
+
+### Built-in native elements
+
+When using regular HTML form elements like `<input>` or `<select>`, browsers automatically fall back to native OS components. That means better accessibility, smoother performance, and a consistent OS feel without doing any extra work. Sometimes the simplest solution is the best one.
+
+---
+
+### Dark mode support
+
+By using `@media (prefers-color-scheme)` you can match the user's system preference and even allow a manual override if you want.
+
+```css
+@media (prefers-color-scheme: dark) {
+. body { background: #121212; color: white; }
+}
+```
+
+It's a simple touch, but it makes a huge difference when users install the app and expect it to follow their system theme. It's one of those details that makes everything feel more polished.
+
+---
+
+### Wrapping up
+
+Here's what we ended up with:
+- Swipeable sidebars that feel fluid and responsive
+- PWA installable from the home screen
+- Icons and splash screens that look native
+- Full use of the available screen space
+- Speech to text and gallery upload features
+- Native inputs and selects
+- Themes that match the user's device
+
+In short, the web stack can go much further than most people expect.
+
+A PWA will never replace native apps for every use case, but for many products the gap is now small enough that a rewrite often just isn't worth it. Sometimes the best solution is already in your browser.

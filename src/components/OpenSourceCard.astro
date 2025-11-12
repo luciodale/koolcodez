@@ -8,44 +8,24 @@ export type Props = {
 const { repoUrl } = Astro.props;
 ---
 
-<article class="group max-w-lg bg-white/5 border border-white/10 rounded-lg min-h-44">
+<a href={repoUrl} target="_blank" rel="noopener noreferrer" class="group max-w-lg bg-white/5 rounded-lg min-h-44 liquid-glass-border transition-shadow duration-200 hover:shadow shadow-accent/90">
 	<div class="md:p-6 p-4 flex flex-col gap-4 justify-between h-full">
 		<!-- Header -->
-         <div>
-		<div class="flex items-center justify-between pb-4">
-			<h3 class="text-sm text-white flex items-center gap-2">
-                <GithubIcon />
-				<slot name="title" />
-			</h3>
-			<span class="px-2 py-1 text-xs font-family-mono text-white border border-white/10 rounded">
-				<slot name="language" />
-			</span>
-		</div>
+		<div>
+			<div class="flex items-center justify-between pb-4">
+				<h3 class="text-sm text-white flex items-center gap-2 shrink-0">
+					<GithubIcon />
+					<slot name="title" />
+				</h3>
+				<span class="px-2 py-1 text-xs font-family-mono text-white border border-white/10 rounded">
+					<slot name="language" />
+				</span>
+			</div>
 
-		<!-- Description -->
-		<div class="leading-relaxed">
-			<slot name="description" />
-		</div>
-    </div>
-
-        <div class="flex justify-between items-center">
-		<!-- Stats -->
-		<div class="flex items-center gap-3 text-white/50">
-			<div class="flex items-center gap-1">
-				<svg class="w-4" fill="currentColor" viewBox="0 0 24 24">
-					<path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
-				</svg>
-				<slot name="stars" />
+			<!-- Description -->
+			<div class="leading-relaxed pt-2">
+				<slot name="description" />
 			</div>
 		</div>
-
-		<!-- Action button -->
-		<a href={repoUrl} target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 text-accent hover:text-accent/80 transition-colors duration-150">
-			Repository
-			<svg class="w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
-			</svg>
-		</a>
-    </div>
 	</div>
-</article>
+</a>
