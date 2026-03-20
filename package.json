@@ -6,10 +6,13 @@
   "scripts": {
     "dev": "astro dev",
     "build": "astro build",
-    "preview": "astro preview",
-    "astro": "astro"
+    "preview": "bun run build && wrangler dev",
+    "astro": "astro",
+    "deploy": "bun run build && wrangler deploy",
+    "cf-typegen": "wrangler types"
   },
   "dependencies": {
+    "@astrojs/cloudflare": "12",
     "@astrojs/mdx": "^4.3.4",
     "@astrojs/react": "^4.3.0",
     "@astrojs/rss": "^4.0.12",
@@ -22,6 +25,7 @@
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
     "sharp": "^0.34.2",
-    "tailwindcss": "^4.1.12"
+    "tailwindcss": "^4.1.12",
+    "wrangler": "^4.76.0"
   }
 }
