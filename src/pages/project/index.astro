@@ -1,0 +1,60 @@
+---
+import AppWrapper from '../../building-blocks/AppWrapper.astro';
+import SectionHeading from '../../components/SectionHeading.astro';
+import { siteConfig } from '../../config/site';
+
+const projects = [
+	{
+		title: 'React Socket',
+		description: 'A real time React application powered by WebSockets.',
+		href: '/project/react-socket',
+		status: 'Live' as const,
+	},
+	{
+		title: 'React Searchable Dropdown',
+		description: 'Single and multi selection, virtualized, with search and new option creation.',
+		href: '/project/react-searchable-dropdown',
+		status: 'Coming soon' as const,
+	},
+	{
+		title: 'Swipe Bar',
+		description: 'An intuitive, native-app-like experience for mobile and desktop sidebars.',
+		href: '/project/swipe-bar',
+		status: 'Coming soon' as const,
+	},
+];
+---
+
+<AppWrapper title={`Projects - ${siteConfig.title}`} description="Interactive projects and experiments.">
+	<section class="text-center max-w-4xl mx-auto">
+		<h1 class="mb-4">Projects</h1>
+		<p class="text-xl mx-auto max-w-xl pt-6">
+			Interactive experiments and side projects, deployed and running on the edge.
+		</p>
+	</section>
+
+	<section>
+		<SectionHeading>All projects</SectionHeading>
+		<div class="grid gap-8 grid-cols-1 md:grid-cols-2 lg:grid-cols-3 md:px-12">
+			{projects.map((project) => (
+				<a href={project.href} class="group max-w-lg bg-white/5 rounded-lg min-h-44 liquid-glass-border transition-shadow duration-200 hover:shadow shadow-accent/90">
+					<div class="md:p-6 p-4 flex flex-col gap-4 justify-between h-full">
+						<div>
+							<div class="flex items-center justify-between pb-4">
+								<h3 class="text-sm text-white flex items-center gap-2 shrink-0">
+									{project.title}
+								</h3>
+								<span class="px-2 py-1 text-xs font-family-mono text-white border border-white/10 rounded">
+									{project.status}
+								</span>
+							</div>
+							<div class="leading-relaxed pt-2">
+								{project.description}
+							</div>
+						</div>
+					</div>
+				</a>
+			))}
+		</div>
+	</section>
+</AppWrapper>
