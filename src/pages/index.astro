@@ -5,7 +5,10 @@ import BlogCardWithImage from "../components/BlogCardWithImage.astro";
 import ProjectCard from "../components/ProjectCard.astro";
 import SectionHeading from "../components/SectionHeading.astro";
 import Segment from "../components/Segment.astro";
+import { getProjectsWithVersions } from "../config/projects";
 import { siteConfig } from "../config/site";
+
+const projects = await getProjectsWithVersions();
 
 // Get the last 3 blog posts
 const posts = await getCollection("blog");
@@ -68,27 +71,15 @@ const recentPosts = sortedPosts.slice(0, 3);
 		<div
 			class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8 md:px-6"
 		>
-			<ProjectCard
-				title="react-socket"
-				description="Type safe WebSocket hooks with reconnection, optimistic updates, and offline queuing."
-				href="/projects/react-socket"
-				status="npm v0.0.2"
-				logo="/react-socket-logo.svg"
-			/>
-			<ProjectCard
-				title="react-searchable-dropdown"
-				description="Virtualized single and multi select with async search and custom rendering."
-				href="/projects/react-searchable-dropdown"
-				status="npm v2.0.3"
-				logo="/react-searchable-dropdown-logo.svg"
-			/>
-			<ProjectCard
-				title="swipe-bar"
-				description="Gesture driven sidebars with spring physics for mobile first interfaces."
-				href="/projects/swipe-bar"
-				status="npm v1.3.5"
-				logo="/swipe-bar-logo.svg"
-			/>
+			{projects.filter(p => !p.href.startsWith('http')).map((project) => (
+				<ProjectCard
+					title={project.title}
+					description={project.shortDescription}
+					href={project.href}
+					status={project.status}
+					logo={project.logo}
+				/>
+			))}
 		</div>
 		<div class="text-center mt-10">
 			<a

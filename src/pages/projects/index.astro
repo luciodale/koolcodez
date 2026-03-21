@@ -3,41 +3,9 @@ import AppWrapper from '../../building-blocks/AppWrapper.astro';
 import PageHeader from '../../components/PageHeader.astro';
 import ProjectShowcase from '../../components/ProjectShowcase.astro';
 import { siteConfig } from '../../config/site';
+import { getProjectsWithVersions } from '../../config/projects';
 
-const projects = [
-	{
-		title: 'react-socket',
-		description: 'A batteries included React library for real time WebSocket communication. Type safe hooks, automatic reconnection, optimistic updates, and offline message queuing out of the box.',
-		href: '/projects/react-socket',
-		tags: ['React', 'TypeScript', 'WebSockets', 'Cloudflare Workers'],
-		status: 'npm v0.0.2',
-		logo: '/react-socket-logo.svg',
-	},
-	{
-		title: 'react-searchable-dropdown',
-		description: 'A high performance, virtualized dropdown component supporting single and multi selection, async search, custom rendering, and new option creation with zero dependencies.',
-		href: '/projects/react-searchable-dropdown',
-		tags: ['React', 'TypeScript', 'Virtualization'],
-		status: 'npm v2.0.3',
-		logo: '/react-searchable-dropdown-logo.svg',
-	},
-	{
-		title: 'swipe-bar',
-		description: 'A gesture driven sidebar that brings native app fluidity to the web. Smooth spring physics, touch and mouse support, and a tiny footprint for mobile first interfaces.',
-		href: '/projects/swipe-bar',
-		tags: ['TypeScript', 'Gestures', 'Mobile'],
-		status: 'npm v1.3.5',
-		logo: '/swipe-bar-logo.svg',
-	},
-	{
-		title: 'fork',
-		description: 'A headless form management library for Re-frame and Reagent. Handles validation, submission, dirty tracking, and field state with a declarative API.',
-		href: 'https://github.com/luciodale/fork',
-		tags: ['ClojureScript', 'Re-frame', 'Reagent'],
-		status: 'clojars v2.4.3',
-		logo: '/fork-logo.svg',
-	},
-];
+const projects = await getProjectsWithVersions();
 ---
 
 <AppWrapper title={`Projects - ${siteConfig.title}`} description="Interactive projects and experiments.">
