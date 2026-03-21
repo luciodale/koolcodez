@@ -53,6 +53,25 @@ body, html {
   }
 }
 
+/* Code blocks - match docs-ui-kit style */
+.prose pre {
+  background-color: #161618 !important;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 0.5rem;
+  padding: 1.25rem;
+  font-size: 0.875rem;
+  line-height: 1.7;
+  overflow-x: auto;
+}
+
+.prose :not(pre) > code {
+  background-color: #161618;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 0.25rem;
+  padding: 0.15rem 0.4rem;
+  font-size: 0.85em;
+}
+
 /* Liquid Glass Border Effect */
 .liquid-glass-border {
   position: relative;

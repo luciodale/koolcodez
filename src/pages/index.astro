@@ -1,84 +1,123 @@
 ---
-import { getCollection } from 'astro:content';
-import AppWrapper from '../building-blocks/AppWrapper.astro';
-import BlogCardWithImage from '../components/BlogCardWithImage.astro';
-import OpenSourceCard from '../components/OpenSourceCard.astro';
-import SectionHeading from '../components/SectionHeading.astro';
-import Segment from '../components/Segment.astro';
-import { siteConfig } from '../config/site';
+import { getCollection } from "astro:content";
+import AppWrapper from "../building-blocks/AppWrapper.astro";
+import BlogCardWithImage from "../components/BlogCardWithImage.astro";
+import ProjectCard from "../components/ProjectCard.astro";
+import SectionHeading from "../components/SectionHeading.astro";
+import Segment from "../components/Segment.astro";
+import { siteConfig } from "../config/site";
 
 // Get the last 3 blog posts
-const posts = await getCollection('blog');
-const sortedPosts = posts.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
+const posts = await getCollection("blog");
+const sortedPosts = posts.sort(
+	(a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
+);
 const recentPosts = sortedPosts.slice(0, 3);
 ---
 
 <AppWrapper title={siteConfig.title} description={siteConfig.description}>
-				<!-- Hero Section -->
-				<section class="text-center max-w-4xl mx-auto">
-						<img src="/kool-codez-logo.svg" alt={siteConfig.title} class="max-w-md mx-auto" />
-					<p class="text-xl mx-auto max-w-xl pt-6 text-white">
-						Senior frontend engineer with 8+ years of experience crafting fast, polished UIs built on a core of clean, stable, and genuinely maintainable code.
-					</p>
-				</section>
+	<!-- Hero Section -->
+	<section class="text-center max-w-4xl mx-auto">
+		<img
+			src="/kool-codez-logo.svg"
+			alt={siteConfig.title}
+			class="max-w-md mx-auto"
+		/>
+		<p class="text-xl font-light mx-auto max-w-xl pt-6 text-white/70">
+			A decade of frontend engineering, crafting fast, polished UIs built
+			on a core of clean, stable, and genuinely maintainable code.
+		</p>
+	</section>
 
-				<!-- Expertise Section -->
-				<section class="py-8 md:py-12">
-					<SectionHeading>My niche</SectionHeading>
-					<div class="grid grid-cols-1 lg:grid-cols-3 gap-18 md:px-6">
-						<Segment>
-							<div slot="title">One truth</div>
-							<div slot="description">I enforce a 100% TypeScript environment built on a single source of truth for types. This eliminates data duplication by validating types directly against backend contracts like OpenAPI and JSON Schema, ensuring frontend to backend consistency and preventing entire classes of integration bugs.</div>
-						</Segment>
-						<Segment>	
-							<div slot="title">Light touch</div>
-							<div slot="description">My design philosophy is minimal, clean, and slick. I prioritize speed and clarity, rejecting useless animations and overloaded interfaces that bog down the client. The result is a lightweight and intuitive UI that keeps the user focused and the experience seamless.
+	<!-- Expertise Section -->
+	<section class="py-8 md:py-12">
+		<SectionHeading>The approach</SectionHeading>
+		<div class="grid grid-cols-1 lg:grid-cols-3 gap-18 md:px-6">
+			<Segment>
+				<div slot="title">One truth</div>
+				<div slot="description">
+					100% TypeScript built on a single source of truth for types.
+					Frontend to backend consistency, avoiding entire classes of
+					integration bugs.
+				</div>
+			</Segment>
+			<Segment>
+				<div slot="title">Light touch</div>
+				<div slot="description">
+					Design that is minimal, clean, and slick. The result is a
+					lightweight and intuitive UI that keeps the user focused and
+					the experience seamless.
+				</div>
+			</Segment>
+			<Segment>
+				<div slot="title">True balance</div>
+				<div slot="description">
+					Performance without compromise on code health. Every
+					optimization weighed against long-term maintainability.
+				</div>
+			</Segment>
+		</div>
+	</section>
 
-							</div>		
-						</Segment>
-						<Segment>
-							<div slot="title">True balance</div>
-							<div slot="description">Over 8 years of experience building performance-sensitive applications has taught me the importance of balancing optimization with long-term code health. I focus on finding that sweet spot: a codebase that is fast, clean, and genuinely maintainable for your team.</div>
-						</Segment>
-					</div>
-				</section>
+	<!-- Projects Section -->
+	<section class="py-8 md:py-12">
+		<SectionHeading>Projects</SectionHeading>
+		<p class="text-center font-light text-white/70 max-w-lg mx-auto -mt-10 mb-14">
+			Open source libraries, published on npm with live documentation.
+		</p>
+		<div
+			class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8 md:px-6"
+		>
+			<ProjectCard
+				title="react-socket"
+				description="Type safe WebSocket hooks with reconnection, optimistic updates, and offline queuing."
+				href="/projects/react-socket"
+				status="npm v0.0.2"
+				logo="/react-socket-logo.svg"
+			/>
+			<ProjectCard
+				title="react-searchable-dropdown"
+				description="Virtualized single and multi select with async search and custom rendering."
+				href="/projects/react-searchable-dropdown"
+				status="npm v2.0.3"
+				logo="/react-searchable-dropdown-logo.svg"
+			/>
+			<ProjectCard
+				title="swipe-bar"
+				description="Gesture driven sidebars with spring physics for mobile first interfaces."
+				href="/projects/swipe-bar"
+				status="npm v1.3.5"
+				logo="/swipe-bar-logo.svg"
+			/>
+		</div>
+		<div class="text-center mt-10">
+			<a
+				href="/projects"
+				class="text-sm text-white/40 hover:text-accent transition-colors duration-200"
+			>
+				View all projects &rarr;
+			</a>
+		</div>
+	</section>
 
-				<section class="py-8 md:py-12">
-					<SectionHeading>Some open source</SectionHeading>
-					<div class="flex flex-col items-center xl:items-stretch xl:flex-row justify-center gap-6 md:gap-8 xl:px-8">
-						<OpenSourceCard repoUrl="https://github.com/luciodale/swipe-bar">
-							<div slot="title">swipe bar</div>
-							<div slot="description">An intuitive, native-app-like experience for mobile and desktop sidebars.</div>
-							<div slot="language">Typescript</div>
-						</OpenSourceCard>
-						<OpenSourceCard repoUrl="https://github.com/luciodale/react-searchable-dropdown">
-							<div slot="title">react searchable dropdown</div>
-							<div slot="description">Single and multi selection, virtualized, new option creation, search, and more.</div>
-							<div slot="language">Typescript</div>
-						</OpenSourceCard>
-						<OpenSourceCard repoUrl="https://github.com/luciodale/fork">
-							<div slot="title">fork</div>
-							<div slot="description">A headless Clojurescript form management library for Re-frame and Reagent.</div>
-							<div slot="language">Clojurescript</div>
-						</OpenSourceCard>
-					</div>
-				</section>
-
-				<!-- Blog Section -->
-				<section class="py-8 md:py-12">
-					<SectionHeading>Latest articles</SectionHeading>
-					<div class="grid gap-8 grid-cols-1 md:grid-cols-2 lg:grid-cols-3 md:px-12">
-						{recentPosts.map((post) => (
-							<BlogCardWithImage 
-								slug={post.id} 
-								date={post.data.pubDate}
-								heroImage={post.data.heroImage}
-							>
-								<div slot="title">{post.data.title}</div>
-								<div slot="description">{post.data.description}</div>
-							</BlogCardWithImage>
-						))}
-					</div>
-				</section>
-				
+	<!-- Blog Section -->
+	<section class="py-8 md:py-12">
+		<SectionHeading>Latest articles</SectionHeading>
+		<div
+			class="grid gap-8 grid-cols-1 md:grid-cols-2 lg:grid-cols-3 md:px-12"
+		>
+			{
+				recentPosts.map((post) => (
+					<BlogCardWithImage
+						slug={post.id}
+						date={post.data.pubDate}
+						heroImage={post.data.heroImage}
+					>
+						<div slot="title">{post.data.title}</div>
+						<div slot="description">{post.data.description}</div>
+					</BlogCardWithImage>
+				))
+			}
+		</div>
+	</section>
 </AppWrapper>

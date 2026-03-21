@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <!-- The edge boundary -->
+  <path d="M12 14L12 50" stroke="white" stroke-width="3" stroke-linecap="round" />
+
+  <!-- The swipe gesture arc from edge outward -->
+  <path d="M12 32C26 18 42 22 52 32" stroke="white" stroke-width="3" stroke-linecap="round" />
+
+  <!-- Touch point on the edge -->
+  <circle cx="12" cy="32" r="3.5" fill="white" />
+
+  <!-- The revealed position -->
+  <circle cx="52" cy="32" r="5" fill="white" />
+</svg>

@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <!-- Two orbital arcs suggesting bidirectional flow -->
+  <path
+    d="M12 32C12 20 22 12 32 12C42 12 48 18 48 24"
+    stroke="white"
+    stroke-width="3"
+    stroke-linecap="round"
+  />
+  <path
+    d="M52 32C52 44 42 52 32 52C22 52 16 46 16 40"
+    stroke="white"
+    stroke-width="3"
+    stroke-linecap="round"
+  />
+
+  <!-- Directional dots at arc ends -->
+  <circle cx="48" cy="24" r="3.5" fill="white" />
+  <circle cx="16" cy="40" r="3.5" fill="white" />
+
+  <!-- Central connection node -->
+  <circle cx="32" cy="32" r="5" fill="white" />
+</svg>

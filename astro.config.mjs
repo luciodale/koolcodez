@@ -17,6 +17,12 @@ export default defineConfig({
     site: 'https://koolcodez.com',
     integrations: [mdx(), sitemap(), react()],
 
+    markdown: {
+        shikiConfig: {
+            theme: 'vitesse-dark',
+        },
+    },
+
     vite: {
         plugins: [tailwindcss()],
     },

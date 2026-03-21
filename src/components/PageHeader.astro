@@ -1,0 +1,15 @@
+---
+export type Props = {
+	title: string;
+	subtitle: string;
+};
+
+const { title, subtitle } = Astro.props;
+---
+
+<section class="text-center max-w-3xl mx-auto">
+	<h1 class="text-4xl font-light text-white">{title}</h1>
+	<p class="text-xl font-light mx-auto max-w-md pt-3 text-white/70">
+		{subtitle}
+	</p>
+</section>

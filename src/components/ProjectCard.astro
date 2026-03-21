@@ -1,0 +1,30 @@
+---
+export type Props = {
+	title: string;
+	description: string;
+	href: string;
+	status: string;
+	logo: string;
+};
+
+const { title, description, href, status, logo } = Astro.props;
+---
+
+<a href={href} class="group max-w-lg bg-white/5 rounded-lg min-h-44 liquid-glass-border transition-shadow duration-200 hover:shadow shadow-accent/90">
+	<div class="md:p-6 p-4 flex flex-col gap-4 justify-between h-full">
+		<div>
+			<div class="flex items-center justify-between pb-4">
+				<h3 class="text-sm text-white flex items-center gap-2 shrink-0">
+					<img src={logo} alt={title} class="w-5 h-5" />
+					{title}
+				</h3>
+				<span class="px-2 py-1 text-xs font-family-mono rounded text-white/50 border border-white/10">
+					{status}
+				</span>
+			</div>
+			<div class="leading-relaxed pt-2 text-white/70">
+				{description}
+			</div>
+		</div>
+	</div>
+</a>

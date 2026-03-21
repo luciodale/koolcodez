@@ -1,0 +1,41 @@
+---
+export type Props = {
+	title: string;
+	description: string;
+	href: string;
+	tags: string[];
+	status: string;
+	logo?: string;
+};
+
+const { title, description, href, tags, status, logo } = Astro.props;
+---
+
+<a href={href} class="group block">
+	<div class="flex items-start gap-4 md:gap-10">
+		{logo && <img src={logo} alt="" class="w-8 h-8 md:w-14 md:h-14 shrink-0 mt-1" />}
+
+		<div class="flex flex-col gap-3 md:gap-4 min-w-0">
+			<div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+				<h2 class="text-xl md:text-3xl font-light text-white tracking-tight group-hover:text-white/80 transition-colors duration-300 break-all sm:break-normal">
+					{title}
+				</h2>
+				<span class="px-2.5 py-0.5 text-xs font-family-mono text-white/50 border border-white/10 rounded-full w-fit shrink-0">
+					{status}
+				</span>
+			</div>
+
+			<p class="text-sm md:text-lg font-light leading-relaxed text-white/70 group-hover:text-white/80 transition-colors duration-300">
+				{description}
+			</p>
+
+			<div class="flex flex-wrap gap-1.5 md:gap-2 pt-1">
+				{tags.map((tag) => (
+					<span class="px-2 md:px-2.5 py-0.5 md:py-1 text-xs font-family-mono text-white/50 bg-white/[0.03] rounded border border-white/[0.06]">
+						{tag}
+					</span>
+				))}
+			</div>
+		</div>
+	</div>
+</a>
