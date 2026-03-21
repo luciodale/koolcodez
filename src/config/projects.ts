@@ -19,7 +19,7 @@ export const projects: Project[] = [
 		shortDescription:
 			'Type safe WebSocket hooks with reconnection, optimistic updates, and offline queuing.',
 		href: '/projects/react-socket',
-		tags: ['React', 'TypeScript', 'WebSockets', 'Cloudflare Workers'],
+		tags: ['React Hooks', 'TypeScript', 'WebSocket', 'Real Time'],
 		registry: 'npm',
 		packageName: '@luciodale/react-socket',
 		logo: '/react-socket-logo.svg',
@@ -31,7 +31,7 @@ export const projects: Project[] = [
 		shortDescription:
 			'Virtualized single and multi select with async search and custom rendering.',
 		href: '/projects/react-searchable-dropdown',
-		tags: ['React', 'TypeScript', 'Virtualization'],
+		tags: ['React Component', 'TypeScript', 'Fuzzy Search', 'Accessibility'],
 		registry: 'npm',
 		packageName: '@luciodale/react-searchable-dropdown',
 		logo: '/react-searchable-dropdown-logo.svg',
@@ -43,7 +43,7 @@ export const projects: Project[] = [
 		shortDescription:
 			'Gesture driven sidebars with spring physics for mobile first interfaces.',
 		href: '/projects/swipe-bar',
-		tags: ['TypeScript', 'Gestures', 'Mobile'],
+		tags: ['React Component', 'Touch Gestures', 'Mobile UI', 'Zero Dependencies'],
 		registry: 'npm',
 		packageName: '@luciodale/swipe-bar',
 		logo: '/swipe-bar-logo.svg',
@@ -55,7 +55,7 @@ export const projects: Project[] = [
 		shortDescription:
 			'Headless form management for Re-frame and Reagent with declarative validation.',
 		href: 'https://github.com/luciodale/fork',
-		tags: ['ClojureScript', 'Re-frame', 'Reagent'],
+		tags: ['ClojureScript', 'Re-frame', 'Forms', 'Validation'],
 		registry: 'clojars',
 		packageName: 'fork',
 		logo: '/fork-logo.svg',
