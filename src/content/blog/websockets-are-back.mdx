@@ -1,0 +1,401 @@
+---
+title: 'WebSockets Are Back. The Client Side Is Still a Mess.'
+description: 'Building a streaming LLM client pushed me to write the WebSocket library I wished existed.'
+pubDate: 'Mar 21 2026'
+heroImage: '../../assets/hero-web-websockets.webp'
+---
+
+WebSockets have never been more relevant than they are right now.
+
+OpenAI shipped <a href="https://developers.openai.com/api/docs/guides/websocket-mode" target="_blank">WebSocket mode</a> for the Responses API, reporting up to 40% faster end to end execution in agentic workflows with 20+ tool calls. Google built the entire <a href="https://ai.google.dev/gemini-api/docs/live-api" target="_blank">Gemini Live API</a> on WebSockets for real time multimodal streaming. The direction is clear: the moment an application needs bidirectional communication or long running stateful sessions, SSE starts to fall short, and WebSockets become the natural choice.
+
+## My Situation
+
+This is directly relevant to what I am working on right now. My team and I are building a client application for an internal large language model, something similar in shape to what you would use with the Claude or GPT APIs but running on our own infrastructure. We have been using Server Sent Events for streaming responses, and it works. But we are in the process of replacing SSE with WebSockets.
+
+Infra constraints are pushing us in that direction. I will skip the details because, honestly, the technical reasons matter less than what happened next: we started looking at the browser `WebSocket` API and realized how little it gives you by default.
+
+And here is the thing that caught us off guard. Once you have a WebSocket connection open, you do not just use it for one thing. The chat stream is just the starting point. Notifications, presence updates, status changes, progress events, error broadcasts: they all want to flow through that same connection. Suddenly you are not managing one message type, you are routing dozens of different events to different parts of your UI, each with its own shape, its own handling logic, and its own edge cases. That is where the complexity really shows up.
+
+## Why Is This Still Hard?
+
+The `WebSocket` constructor in the browser looks simple at first. Open a connection, send a message, listen for responses. Three lines and you have a working demo. But the gap between that demo and production is enormous.
+
+Here is what you actually need to handle:
+
+**Reconnection.** Connections drop. Mobile users switch networks, laptops wake from sleep, load balancers enforce idle timeouts. The browser API gives you nothing. No automatic reconnect, no backoff, no retry. You are writing that state machine yourself.
+
+**Heartbeats.** Many reverse proxies and CDNs kill idle WebSocket connections after 60 seconds. You need application level ping/pong to keep the connection alive. Miss this, and your users stare at a frozen UI that looks connected but is not.
+
+**State synchronization after reconnect.** Reconnecting the socket is the easy part. Figuring out what messages were missed while you were offline, restoring subscriptions, replaying queued messages: that is where the real complexity lives.
+
+**Duplicate subscriptions.** If multiple React components subscribe to the same event channel, you do not want each mount to open a new subscription on the wire. You need reference counting and deduplication, and you need it to clean up correctly on unmount.
+
+**Message delivery tracking.** Did the server actually receive that message? If the connection dropped mid send, should you retry? How do you show the user a "sending..." state that resolves to "sent" or "failed" without race conditions?
+
+None of this is exotic. It is the baseline for any real time application. And yet most developers end up reimplementing the same fragile logic in every project.
+
+## The Existing Landscape
+
+Before writing anything, I looked at what was out there. <a href="https://www.apollographql.com/docs/react/data/subscriptions" target="_blank">Apollo</a> and <a href="https://socket.io/" target="_blank">Socket.IO</a> are great if you can use their protocols, but both require specific server implementations. <a href="https://www.npmjs.com/package/partysocket" target="_blank">PartySocket</a> gives you reconnection as a drop in `WebSocket` replacement, but nothing beyond that. <a href="https://www.npmjs.com/package/react-use-websocket" target="_blank">react-use-websocket</a> adds a React hook with shared connections, but no serialization, no channel abstraction, and limited state management.
+
+All solid tools. But none of them gave me a typed, protocol agnostic WebSocket manager that handles connection lifecycle, subscription deduplication, message acknowledgment, and integrates cleanly with React state.
+
+## What I Actually Want
+
+Nothing groundbreaking. Just a WebSocket wrapper that takes care of the orchestration nightmare so I can focus on the actual product. Specifically:
+
+- A single manager that owns the connection, so components do not fight over it
+- Type safe serialization on the way in and out
+- Reference counted subscriptions, so ten components subscribing to the same channel produce one wire message and one cleanup
+- Acknowledged sends with in flight tracking, so you know if a message was delivered or dropped
+- Automatic reconnection with exponential backoff, subscription restoration, and offline message queuing
+- Callbacks that act as dispatchers, routing incoming messages to the right store updates
+
+And critically: a small custom hook you can call from anywhere, with top notch performance. No duplicate events flying around, no race conditions, no weird behaviors.
+
+## So I Built It
+
+That is how <a href="/projects/react-socket" target="_blank">react-socket</a> came to be.
+
+The core concept is a `WebSocketManager` that you instantiate once with your protocol types, your serialization functions, and your callbacks. It handles the entire connection lifecycle. Your React components interact with it through thin hooks and store selectors, completely decoupled from the WebSocket orchestration.
+
+Here is the simplest possible setup from the <a href="/projects/react-socket/docs/getting-started" target="_blank">getting started guide</a>:
+
+```ts
+// manager.ts
+import { WebSocketManager } from "@luciodale/react-socket"
+
+type TClientMsg = { action: "echo"; text: string }
+type TServerMsg = { action: "echo"; text: string }
+
+export const manager = new WebSocketManager<TClientMsg, TServerMsg>({
+  url: "ws://localhost:3001/ws",
+  serialize: (msg) => JSON.stringify(msg),
+  deserialize: (raw) => JSON.parse(raw),
+
+  onMessageReceived(msg) {
+    // route messages to your store
+  },
+})
+
+manager.connect()
+```
+
+Two generic type parameters, three required options, and you have a fully managed WebSocket connection with automatic reconnection, heartbeat support, and debug tooling built in. The <a href="/projects/react-socket/docs/configuration" target="_blank">configuration reference</a> covers every option, but the defaults are sensible enough that you rarely need to touch them.
+
+The library also handles <a href="/projects/react-socket/docs/subscriptions" target="_blank">ref counted subscriptions</a> (ten components subscribing to the same channel produce one wire message), <a href="/projects/react-socket/docs/optimistic-updates" target="_blank">acknowledged sends</a> with in flight tracking, and automatic subscription restoration after reconnect. But rather than walk through each feature, let me show you what it looks like against a real protocol.
+
+## Testing It Against the OpenAI Protocol
+
+One important thing about react-socket: it is not tied to any specific backend or protocol. You define your own message types, your own serialization, and your own routing logic. The library does not care what flows through it.
+
+That made me curious to try something. When OpenAI released <a href="https://developers.openai.com/api/docs/guides/websocket-mode" target="_blank">WebSocket mode</a> for the Responses API, I wanted to see how react-socket would handle a protocol I had no control over. It is event driven, has over 50 streaming event types, supports multi turn conversations via `previous_response_id`, and enforces a 60 minute connection limit that requires graceful reconnection.
+
+I have to say, it works really well.
+
+Here is how you wire it up. First, define the protocol types. OpenAI's WebSocket mode uses a discriminated union of events, which maps naturally to TypeScript:
+
+```ts
+// openai-types.ts
+type TInputItem = {
+  type: "message"
+  role: "user" | "system" | "developer"
+  content: Array<{ type: "input_text"; text: string }>
+}
+
+export type TClientMsg = {
+  type: "response.create"
+  model: string
+  input: Array<TInputItem>
+  previous_response_id?: string
+}
+
+export type TServerMsg =
+  | {
+      type: "response.created"
+      response: { id: string; status: string }
+      sequence_number: number
+    }
+  | {
+      type: "response.output_text.delta"
+      delta: string
+      item_id: string
+      output_index: number
+      content_index: number
+      sequence_number: number
+    }
+  | {
+      type: "response.output_text.done"
+      text: string
+      item_id: string
+      output_index: number
+      content_index: number
+      sequence_number: number
+    }
+  | {
+      type: "response.completed"
+      response: {
+        id: string
+        status: string
+        usage: {
+          input_tokens: number
+          output_tokens: number
+          total_tokens: number
+        }
+      }
+      sequence_number: number
+    }
+  | {
+      type: "response.failed"
+      response: {
+        id: string
+        error: { code: string; message: string }
+      }
+      sequence_number: number
+    }
+```
+
+This is a subset. The full protocol covers function calls, code interpretation, image generation, MCP tool calls, and more. But for a text streaming client, these five events are all you need.
+
+Next, the store. I am using <a href="https://github.com/pmndrs/zustand" target="_blank">Zustand</a> here because it pairs well with external event sources, but any state manager works:
+
+```ts
+// store.ts
+import { create } from "zustand"
+
+type TMessage = {
+  role: "user" | "assistant"
+  content: string
+}
+
+type TChatState = {
+  messages: TMessage[]
+  streamingText: string
+  isStreaming: boolean
+  lastResponseId: string | null
+  error: string | null
+}
+
+export const useChatStore = create<TChatState>(() => ({
+  messages: [],
+  streamingText: "",
+  isStreaming: false,
+  lastResponseId: null,
+  error: null,
+}))
+```
+
+Now the manager. This is where react-socket connects everything:
+
+```ts
+// manager.ts
+import { WebSocketManager } from "@luciodale/react-socket"
+import { useChatStore } from "./store"
+import type { TClientMsg, TServerMsg } from "./openai-types"
+
+export const manager = new WebSocketManager<TClientMsg, TServerMsg>({
+  url: "ws://localhost:3001",
+  serialize: (msg) => JSON.stringify(msg),
+  deserialize: (raw) => JSON.parse(raw),
+
+  onMessageReceived(event) {
+    const { setState, getState } = useChatStore
+
+    switch (event.type) {
+      case "response.created":
+        setState({ isStreaming: true, streamingText: "", error: null })
+        break
+
+      case "response.output_text.delta":
+        setState({ streamingText: getState().streamingText + event.delta })
+        break
+
+      case "response.completed": {
+        const finalText = getState().streamingText
+        setState((s) => ({
+          messages: [...s.messages, { role: "assistant", content: finalText }],
+          streamingText: "",
+          isStreaming: false,
+          lastResponseId: event.response.id,
+        }))
+        break
+      }
+
+      case "response.failed":
+        setState({
+          isStreaming: false,
+          error: event.response.error.message,
+        })
+        break
+    }
+  },
+
+  onConnectionStateChange(state) {
+    if (state === "reconnecting") {
+      useChatStore.setState({ error: "Connection lost. Reconnecting..." })
+    }
+    if (state === "connected") {
+      useChatStore.setState({ error: null })
+    }
+  },
+})
+
+manager.connect()
+```
+
+You will notice the URL points to `localhost:3001` instead of `wss://api.openai.com`. That is because OpenAI authenticates WebSocket connections via the `Authorization` header, and the browser `WebSocket` API does not support custom headers. You need a small proxy. Here is a minimal one using Bun:
+
+```ts
+// proxy.ts
+import { WebSocket as NodeWebSocket } from "ws"
+
+const OPENAI_API_KEY = process.env.OPENAI_API_KEY
+const connections = new WeakMap()
+
+Bun.serve({
+  port: 3001,
+  fetch(req, server) {
+    if (server.upgrade(req)) return
+    return new Response("OpenAI WebSocket proxy running")
+  },
+  websocket: {
+    open(ws) {
+      const queue: string[] = []
+      const upstream = new NodeWebSocket(
+        "wss://api.openai.com/v1/responses",
+        { headers: { Authorization: `Bearer ${OPENAI_API_KEY}` } }
+      )
+      connections.set(ws, { upstream, queue })
+
+      upstream.on("open", () => {
+        for (const msg of queue) upstream.send(msg)
+        queue.length = 0
+      })
+      upstream.on("message", (data) => ws.send(data.toString()))
+      upstream.on("close", () => ws.close())
+    },
+    message(ws, msg) {
+      const conn = connections.get(ws)
+      if (!conn) return
+      const str = typeof msg === "string" ? msg : Buffer.from(msg).toString()
+      if (conn.upstream.readyState === NodeWebSocket.OPEN) {
+        conn.upstream.send(str)
+      } else {
+        conn.queue.push(str)
+      }
+    },
+    close(ws) {
+      connections.get(ws)?.upstream.close()
+    },
+  },
+})
+```
+
+Run it with `OPENAI_API_KEY=sk-... bun run proxy.ts` and your browser connects to `ws://localhost:3001`. The proxy adds the auth header and pipes everything through. In production you would do the same thing, just behind your own backend instead of localhost.
+
+Now look at what is not in the manager code. No reconnection logic. No heartbeat timers. No connection state machine. No event listener cleanup. The manager handles all of that. What is left is just a `switch` statement routing events to store updates.
+
+Finally, the hook and component:
+
+```ts
+// useChat.ts
+import { useChatStore } from "./store"
+import { manager } from "./manager"
+
+export function useChat() {
+  const messages = useChatStore((s) => s.messages)
+  const streamingText = useChatStore((s) => s.streamingText)
+  const isStreaming = useChatStore((s) => s.isStreaming)
+  const lastResponseId = useChatStore((s) => s.lastResponseId)
+  const error = useChatStore((s) => s.error)
+
+  function send(text: string) {
+    useChatStore.setState((s) => ({
+      messages: [...s.messages, { role: "user" as const, content: text }],
+    }))
+
+    manager.send({
+      data: {
+        type: "response.create",
+        model: "gpt-4o",
+        input: [
+          {
+            type: "message",
+            role: "user",
+            content: [{ type: "input_text", text }],
+          },
+        ],
+        ...(lastResponseId && { previous_response_id: lastResponseId }),
+      },
+    })
+  }
+
+  return { messages, streamingText, isStreaming, error, send }
+}
+```
+
+The `previous_response_id` is what makes multi turn work over WebSocket. Each response returns an id, and you pass it on the next turn so the server knows the conversation context. This means incremental payloads: you only send new messages, not the entire history on every turn.
+
+```tsx
+// Chat.tsx
+import { useState } from "react"
+import { useConnectionState } from "@luciodale/react-socket"
+import { useChat } from "./useChat"
+import { manager } from "./manager"
+
+export function Chat() {
+  const [input, setInput] = useState("")
+  const { messages, streamingText, isStreaming, error, send } = useChat()
+  const connectionState = useConnectionState(manager)
+
+  function handleSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    if (!input.trim() || isStreaming) return
+    send(input)
+    setInput("")
+  }
+
+  return (
+    <div>
+      {connectionState !== "connected" && <span>{connectionState}</span>}
+
+      {messages.map((msg, i) => (
+        <div key={i}>
+          <strong>{msg.role}</strong>: {msg.content}
+        </div>
+      ))}
+
+      {streamingText && (
+        <div>
+          <strong>assistant</strong>: {streamingText}
+        </div>
+      )}
+
+      {error && <p>{error}</p>}
+
+      <form onSubmit={handleSubmit}>
+        <input
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          placeholder="Ask something..."
+          disabled={connectionState !== "connected"}
+        />
+        <button type="submit" disabled={isStreaming}>
+          Send
+        </button>
+      </form>
+    </div>
+  )
+}
+```
+
+That is it. A full streaming LLM chat client with automatic reconnection, connection state indicators, and multi turn conversation support. The `useChat` hook is the entire interface. Need a second component showing a token usage panel or a conversation list? Same hook, same manager, no extra connections.
+
+## What I Took Away
+
+The browser `WebSocket` API has not changed in over a decade. `onopen`, `onmessage`, `onclose`, `onerror`, and nothing else. Meanwhile, the protocols running on top of it have gotten significantly more complex.
+
+react-socket is not trying to be clever or do too much. It handles the stuff you do not want to think about so you can focus on the actual product. We are still in the middle of our SSE to WebSocket migration, but so far it has made the transition a lot less painful than I expected.
+
+If any of this resonated, <a href="/projects/react-socket" target="_blank">give it a look</a>. The <a href="/projects/react-socket/docs/getting-started" target="_blank">docs</a> walk you through everything, and there are <a href="/projects/react-socket/demo/fire-and-forget" target="_blank">live demos</a> you can try before committing to anything.
