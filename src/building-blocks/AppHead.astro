@@ -10,6 +10,8 @@ type Props = {
   canonicalUrl?: string;
   siteName?: string;
   locale?: string;
+  publishedTime?: string;
+  author?: string;
 };
 
 const {
@@ -21,6 +23,8 @@ const {
   canonicalUrl = Astro.url.href,
   siteName = siteConfig.title,
   locale = 'en_GB',
+  publishedTime,
+  author,
 } = Astro.props;
 
 import '../styles/global.css';
@@ -49,8 +53,31 @@ const organizationLd = {
       ],
 };
 
+const blogPostingLd = ogType === 'article' ? {
+  '@context': 'https://schema.org',
+  '@type': 'BlogPosting',
+  headline: title,
+  description,
+  ...(ogImage && { image: ogImage }),
+  ...(publishedTime && { datePublished: publishedTime }),
+  url: canonicalUrl,
+  ...(author && {
+    author: {
+      '@type': 'Person',
+      name: author,
+    },
+  }),
+  publisher: {
+    '@type': 'Organization',
+    name: siteName,
+    ...(canonicalUrl && { logo: { '@type': 'ImageObject', url: new URL('/logo.png', canonicalUrl).toString() } }),
+  },
+  inLanguage: (locale && locale.split('_')[0]) || 'en',
+} : null;
+
 const websiteLdJson = JSON.stringify(websiteLd);
 const organizationLdJson = JSON.stringify(organizationLd);
+const blogPostingLdJson = blogPostingLd ? JSON.stringify(blogPostingLd) : null;
 ---
 
 <meta charset="UTF-8" />
@@ -74,6 +101,8 @@ const organizationLdJson = JSON.stringify(organizationLd);
 
 {locale && <meta property="og:locale" content={locale} />}
 {ogImage && <meta property="og:image" content={ogImage} />}
+{ogType === 'article' && publishedTime && <meta property="article:published_time" content={publishedTime} />}
+{ogType === 'article' && author && <meta property="article:author" content={author} />}
 <meta name="twitter:card" content={twitterCard} />
 <meta name="twitter:title" content={title} />
 <meta name="twitter:description" content={description} />
@@ -81,3 +110,4 @@ const organizationLdJson = JSON.stringify(organizationLd);
 
 <script type="application/ld+json" set:html={websiteLdJson} />
 <script type="application/ld+json" set:html={organizationLdJson} />
+{blogPostingLdJson && <script type="application/ld+json" set:html={blogPostingLdJson} />}

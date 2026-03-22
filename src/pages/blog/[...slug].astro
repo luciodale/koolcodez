@@ -18,21 +18,23 @@ const post = Astro.props;
 const { Content } = await render(post);
 ---
 
-<AppWrapper 
-	title={`${post.data.title} - ${siteConfig.title}`} 
+<AppWrapper
+	title={`${post.data.title} - ${siteConfig.title}`}
 	description={post.data.description}
 	ogImage={post.data.heroImage ? new URL(post.data.heroImage.src, siteConfig.url).href : undefined}
 	ogType="article"
+	publishedTime={post.data.pubDate.toISOString()}
+	author={siteConfig.author}
 >
 	<article class="w-full md:max-w-4xl mx-auto md:px-6 py-8 md:py-16">
 		<header class="mb-8 md:mb-12">
 			{post.data.heroImage && (
 				<div class="mb-6 md:mb-8 rounded-lg overflow-hidden flex justify-center">
-					<Image 
+					<Image
 						src={post.data.heroImage}
-						width={800} 
-						alt="" 
-						class="h-80 md:h-96 object-cover" 
+						width={800}
+						alt={`${post.data.title} - ${post.data.description}`}
+						class="h-80 md:h-96 object-cover"
 					/>
 				</div>
 			)}
