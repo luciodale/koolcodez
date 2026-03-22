@@ -71,7 +71,7 @@ const recentPosts = sortedPosts.slice(0, 3);
 		<div
 			class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8 md:px-6"
 		>
-			{projects.filter(p => !p.href.startsWith('http')).map((project) => (
+			{projects.filter(p => ['react-socket', 'react-searchable-dropdown', 'swipe-bar'].includes(p.title)).map((project) => (
 				<ProjectCard
 					title={project.title}
 					description={project.shortDescription}
@@ -109,6 +109,14 @@ const recentPosts = sortedPosts.slice(0, 3);
 					</BlogCardWithImage>
 				))
 			}
+		</div>
+		<div class="text-center mt-10">
+			<a
+				href="/blog"
+				class="text-sm text-white/40 hover:text-accent transition-colors duration-200"
+			>
+				View all articles &rarr;
+			</a>
 		</div>
 	</section>
 </AppWrapper>
