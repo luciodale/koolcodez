@@ -54,7 +54,7 @@ export const projects: Project[] = [
 			'A headless form management library for Re-frame and Reagent. Handles validation, submission, dirty tracking, and field state with a declarative API.',
 		shortDescription:
 			'Headless form management for Re-frame and Reagent with declarative validation.',
-		href: 'https://github.com/luciodale/fork',
+		href: '/projects/fork',
 		tags: ['ClojureScript', 'Re-frame', 'Forms', 'Validation'],
 		registry: 'clojars',
 		packageName: 'fork',
