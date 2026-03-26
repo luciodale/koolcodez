@@ -12,8 +12,10 @@ type Props = {
   ogType?: 'website' | 'article' | 'profile';
   twitterCard?: 'summary' | 'summary_large_image' | 'app' | 'player';
   publishedTime?: string;
+  modifiedTime?: string;
   author?: string;
   fixedFooter?: boolean;
+  breadcrumbs?: Array<{ name: string; url: string }>;
 };
 
 const {
@@ -23,8 +25,10 @@ const {
   ogType = 'website',
   twitterCard = 'summary_large_image',
   publishedTime,
+  modifiedTime,
   author,
   fixedFooter = false,
+  breadcrumbs,
 } = Astro.props;
 
 const currentUrl = Astro.url.href;
@@ -43,7 +47,9 @@ const currentUrl = Astro.url.href;
       siteName={siteConfig.title}
       locale='en_GB'
       publishedTime={publishedTime}
+      modifiedTime={modifiedTime}
       author={author}
+      breadcrumbs={breadcrumbs}
     />
   </head>
   <body class='min-h-screen bg-black'>

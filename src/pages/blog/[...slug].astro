@@ -24,7 +24,13 @@ const { Content } = await render(post);
 	ogImage={post.data.heroImage ? new URL(post.data.heroImage.src, siteConfig.url).href : undefined}
 	ogType="article"
 	publishedTime={post.data.pubDate.toISOString()}
+	modifiedTime={post.data.updatedDate?.toISOString()}
 	author={siteConfig.author}
+	breadcrumbs={[
+		{ name: 'Home', url: siteConfig.url },
+		{ name: 'Blog', url: `${siteConfig.url}/blog` },
+		{ name: post.data.title, url: `${siteConfig.url}/blog/${post.id}` },
+	]}
 >
 	<article class="w-full md:max-w-4xl mx-auto md:px-6 py-8 md:py-16">
 		<header class="mb-8 md:mb-12">

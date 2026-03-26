@@ -103,6 +103,7 @@ const recentPosts = sortedPosts.slice(0, 3);
 						slug={post.id}
 						date={post.data.pubDate}
 						heroImage={post.data.heroImage}
+						title={post.data.title}
 					>
 						<div slot="title">{post.data.title}</div>
 						<div slot="description">{post.data.description}</div>

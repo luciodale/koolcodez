@@ -11,7 +11,14 @@ const posts = (await getCollection('blog')).sort(
 );
 ---
 
-<AppWrapper title={`Blog - ${siteConfig.title}`} description={siteConfig.description}>
+<AppWrapper
+	title={`Blog - ${siteConfig.title}`}
+	description="Real insights from production code, proven solutions, and lessons learned building modern frontend applications."
+	breadcrumbs={[
+		{ name: 'Home', url: siteConfig.url },
+		{ name: 'Blog', url: `${siteConfig.url}/blog` },
+	]}
+>
 	<PageHeader
 		title="Blog"
 		subtitle="Real insights from production code, proven solutions, and lessons learned."
@@ -26,6 +33,7 @@ const posts = (await getCollection('blog')).sort(
 					slug={post.id}
 					date={post.data.pubDate}
 					heroImage={post.data.heroImage}
+					title={post.data.title}
 				>
 					<div slot="title">{post.data.title}</div>
 					<Fragment slot="description">{post.data.description}</Fragment>

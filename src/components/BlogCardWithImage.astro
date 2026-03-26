@@ -6,19 +6,20 @@ export type Props = {
 	slug: string;
 	date: Date;
 	heroImage: ImageMetadata;
+	title: string;
 };
 
-const { slug, date, heroImage } = Astro.props;
+const { slug, date, heroImage, title } = Astro.props;
 ---
 
 <article class="group min-h-96 hover:shadow shadow-accent/90 md:h-96 bg-white/5 rounded-lg overflow-hidden liquid-glass-border transition-shadow duration-200">
 	<a href={`/blog/${slug}`} class="flex flex-col justify-between h-full">
 			<div class="w-full max-h-72 md:h-1/2 shrink-0">
-				<Image 
+				<Image
 					width={500}
-					src={heroImage} 
-					alt="" 
-					class="w-full h-full object-cover" 
+					src={heroImage}
+					alt={title}
+					class="w-full h-full object-cover"
 				/>
 			</div>
 		<div class="flex flex-col justify-between md:h-1/2 md:p-6 p-4">
