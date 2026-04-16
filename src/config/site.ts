@@ -16,8 +16,8 @@ export type SiteConfig = {
 
 export const siteConfig: SiteConfig = {
   title: 'Kool Codez',
-  description: 'Crafting fast, polished UIs built on a core of clean, stable, and genuinely maintainable code.',
-  author: 'Kool Codez',
+  description: 'React libraries and TypeScript UI components by Lucio D\'Alessandro. Type safe WebSocket hooks, virtualized searchable dropdowns, gesture driven sidebars, and Clojure form tooling. Fast, polished, maintainable frontend engineering.',
+  author: 'Lucio D\'Alessandro',
   url: 'https://koolcodez.com',
   email: 'lucio.dalessa@gmail.com',
   social: {

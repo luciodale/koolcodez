@@ -1,0 +1,30 @@
+# Kool Codez
+
+> Frontend engineering by Lucio D'Alessandro. Open source React libraries and TypeScript UI components focused on speed, polish, and long term maintainability.
+
+Kool Codez is the personal engineering site of Lucio D'Alessandro, a senior frontend contractor with a decade of experience shipping React and TypeScript UIs in production, including at a global investment bank. The site publishes open source libraries and long form technical writing.
+
+## Libraries
+
+- [react-socket](https://koolcodez.com/projects/react-socket): Type safe React hooks for real time WebSocket communication. Automatic reconnection, optimistic updates, offline message queuing. Published on npm as `@luciodale/react-socket`. Source: https://github.com/luciodale/react-socket
+- [react-searchable-dropdown](https://koolcodez.com/projects/react-searchable-dropdown): High performance virtualized React dropdown and combobox. Single and multi selection, async search, custom rendering, create new options, zero dependencies, accessible. Published on npm as `@luciodale/react-searchable-dropdown`. Source: https://github.com/luciodale/react-searchable-dropdown
+- [swipe-bar](https://koolcodez.com/projects/swipe-bar): Gesture driven React sidebar with spring physics. Touch and mouse, native app feel for mobile first web interfaces, tiny footprint. Published on npm as `@luciodale/swipe-bar`. Source: https://github.com/luciodale/swipe-bar
+- [fork](https://koolcodez.com/projects/fork): Headless form management for Re-frame and Reagent. Declarative validation, dirty tracking, submission handling for ClojureScript. Published on Clojars as `fork`. Source: https://github.com/luciodale/fork
+
+## Articles
+
+- [WebSockets Are Back. The Client Side needs more support.](https://koolcodez.com/blog/websockets-are-back): Why bidirectional streaming became essential again, and the motivation behind react-socket.
+- [How Close Can a PWA Get to a Native App?](https://koolcodez.com/blog/how-close-can-a-pwa-get-to-a-native-app): A hands on demo exploring how far the web can go before a native rewrite becomes justified.
+- [Inside a 16.67 Millisecond Frame](https://koolcodez.com/blog/inside-the-frame): Practical walkthrough of how the browser renders within a single frame budget.
+- [From Spaghetti to Simplicity](https://koolcodez.com/blog/from-spaghetti-to-simplicity): Rebuilding a legacy trading UI at a global bank.
+- [Trading Grids: A Technical Deep Dive](https://koolcodez.com/blog/trading-grid): Production ready financial data grids handling real time market data and complex interaction.
+- [10 CSS Features I've Found Really Useful](https://koolcodez.com/blog/useful-css-features): Lesser known CSS properties that solve common UI problems cleanly.
+- [We Badly Need Frameworks](https://koolcodez.com/blog/we-badly-need-frameworks): An honest look at the tradeoffs of modern frontend frameworks.
+
+## Optional
+
+- [All projects](https://koolcodez.com/projects)
+- [All articles](https://koolcodez.com/blog)
+- [Contact](https://koolcodez.com/contacts)
+- [RSS feed](https://koolcodez.com/rss.xml)
+- [Sitemap](https://koolcodez.com/sitemap-index.xml)

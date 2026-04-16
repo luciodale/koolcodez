@@ -1,9 +1,33 @@
 ---
 import AppWrapper from '../building-blocks/AppWrapper.astro';
 import { siteConfig } from '../config/site';
+
+const personLd = {
+	'@context': 'https://schema.org',
+	'@type': 'Person',
+	name: siteConfig.author,
+	url: siteConfig.url,
+	email: `mailto:${siteConfig.email}`,
+	image: new URL('/logo.png', siteConfig.url).toString(),
+	jobTitle: 'Senior Frontend Engineer',
+	description:
+		'Senior frontend engineer specializing in React, TypeScript, and maintainable UI systems. Author of react-socket, react-searchable-dropdown, swipe-bar, and fork.',
+	knowsAbout: [
+		'React',
+		'TypeScript',
+		'Frontend architecture',
+		'WebSockets',
+		'Accessibility',
+		'Design systems',
+		'ClojureScript',
+	],
+	sameAs: [siteConfig.social.github, siteConfig.social.linkedin],
+};
+
+const personLdJson = JSON.stringify(personLd);
 ---
 
-<AppWrapper fixedFooter title={`Contact - ${siteConfig.title}`} description="Get in touch with Kool Codez for creative web development projects and collaborations.">
+<AppWrapper fixedFooter title={`Contact ${siteConfig.author} | ${siteConfig.title}`} description="Get in touch with Lucio D'Alessandro for frontend engineering, React, and TypeScript projects.">
 
 	<!-- Contact Links -->
 	<section class="max-w-lg mx-auto pt-20 flex items-center justify-center">
@@ -53,4 +77,5 @@ import { siteConfig } from '../config/site';
 			</div>
 		</div>
 	</section>
+	<script type="application/ld+json" set:html={personLdJson} is:inline />
 </AppWrapper>

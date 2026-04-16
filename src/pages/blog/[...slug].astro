@@ -2,6 +2,7 @@
 import { Image } from 'astro:assets';
 import { type CollectionEntry, getCollection, render } from 'astro:content';
 import AppWrapper from '../../building-blocks/AppWrapper.astro';
+import { projects } from '../../config/projects';
 import { siteConfig } from '../../config/site';
 import { formatDate } from '../../utils';
 
@@ -16,6 +17,18 @@ type Props = CollectionEntry<'blog'>;
 
 const post = Astro.props;
 const { Content } = await render(post);
+
+const haystack =
+	`${post.data.title} ${post.data.description}`.toLowerCase();
+const relatedProjects = projects.filter((project) => {
+	const terms = [project.title, ...project.tags, ...project.keywords];
+	return terms.some((term) => haystack.includes(term.toLowerCase()));
+});
+
+const allPosts = (await getCollection('blog'))
+	.filter((p) => p.id !== post.id)
+	.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
+	.slice(0, 3);
 ---
 
 <AppWrapper
@@ -56,5 +69,37 @@ const { Content } = await render(post);
 		<div class="prose prose-invert overflow-hidden mx-auto">
 			<Content />
 		</div>
+
+		{relatedProjects.length > 0 && (
+			<aside class="prose prose-invert mx-auto mt-16 pt-8 border-t border-white/10">
+				<h2 class="text-xl font-light text-white !mt-0">Related libraries</h2>
+				<ul class="list-none pl-0">
+					{relatedProjects.map((project) => (
+						<li class="pl-0">
+							<a href={project.href} class="no-underline hover:text-accent">
+								<span class="font-family-mono text-white">{project.title}</span>
+								<span class="text-white/60"> — {project.shortDescription}</span>
+							</a>
+						</li>
+					))}
+				</ul>
+			</aside>
+		)}
+
+		{allPosts.length > 0 && (
+			<aside class="prose prose-invert mx-auto mt-10 pt-8 border-t border-white/10">
+				<h2 class="text-xl font-light text-white !mt-0">More articles</h2>
+				<ul class="list-none pl-0">
+					{allPosts.map((other) => (
+						<li class="pl-0">
+							<a href={`/blog/${other.id}`} class="no-underline hover:text-accent">
+								<span class="text-white">{other.data.title}</span>
+								<span class="text-white/60"> — {other.data.description}</span>
+							</a>
+						</li>
+					))}
+				</ul>
+			</aside>
+		)}
 	</article>
 </AppWrapper>

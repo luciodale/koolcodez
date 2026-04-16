@@ -1,0 +1,135 @@
+# Kool Codez — Full Reference
+
+> Frontend engineering by Lucio D'Alessandro. Open source React and TypeScript libraries plus long form technical writing on frontend architecture, rendering performance, WebSockets, and maintainable UI systems.
+
+## About
+
+Kool Codez is the personal engineering site of Lucio D'Alessandro, a senior frontend contractor with a decade of production React and TypeScript experience. Work includes UI rebuilds at a global investment bank, trading grid systems handling real time market data, and a catalog of open source libraries covering WebSockets, accessible dropdowns, gesture driven navigation, and headless forms.
+
+- Site: https://koolcodez.com
+- GitHub: https://github.com/luciodale
+- LinkedIn: https://www.linkedin.com/in/lucio-d-alessandro-38639bb6/
+- Email: lucio.dalessa@gmail.com
+
+## Libraries
+
+### react-socket
+
+A batteries included React library for real time WebSocket communication.
+
+- Package: `@luciodale/react-socket` on npm
+- Install: `npm install @luciodale/react-socket`
+- Repository: https://github.com/luciodale/react-socket
+- Project page: https://koolcodez.com/projects/react-socket
+- Language: TypeScript
+- License: MIT
+
+Features
+- Type safe hooks for subscribing to and sending WebSocket messages.
+- Automatic reconnection with backoff.
+- Optimistic updates for responsive UIs.
+- Offline message queuing so messages sent while disconnected are flushed on reconnect.
+- Zero boilerplate setup for typical use cases.
+
+Ideal for
+- Streaming LLM clients (OpenAI Responses API WebSocket mode, Gemini Live API).
+- Real time trading UIs.
+- Chat, collaboration, and agentic workflows with many tool calls.
+
+### react-searchable-dropdown
+
+A high performance, virtualized dropdown and combobox component for React.
+
+- Package: `@luciodale/react-searchable-dropdown` on npm
+- Install: `npm install @luciodale/react-searchable-dropdown`
+- Repository: https://github.com/luciodale/react-searchable-dropdown
+- Project page: https://koolcodez.com/projects/react-searchable-dropdown
+- Language: TypeScript
+- License: MIT
+
+Features
+- Single and multi selection modes.
+- Async search with debouncing.
+- Fuzzy matching out of the box.
+- Custom rendering for options and selected state.
+- Create new option inline.
+- Virtualized list rendering for large datasets.
+- Zero runtime dependencies.
+- Accessible keyboard navigation and ARIA support.
+
+Ideal for
+- Country and currency pickers.
+- Large entity lookups (users, tickers, products).
+- Tagging and multi select workflows.
+
+### swipe-bar
+
+A gesture driven sidebar component that brings native app fluidity to the web.
+
+- Package: `@luciodale/swipe-bar` on npm
+- Install: `npm install @luciodale/swipe-bar`
+- Repository: https://github.com/luciodale/swipe-bar
+- Project page: https://koolcodez.com/projects/swipe-bar
+- Language: TypeScript
+- License: MIT
+
+Features
+- Touch and mouse gesture support.
+- Spring physics for natural feeling motion.
+- Tiny bundle footprint.
+- Works without external animation dependencies.
+- Mobile first, designed for web apps that want to feel native.
+
+Ideal for
+- Mobile drawers and navigation sidebars.
+- PWA navigation that competes with native feel.
+
+### fork
+
+Headless form management for Re-frame and Reagent (ClojureScript).
+
+- Package: `fork` on Clojars
+- Repository: https://github.com/luciodale/fork
+- Project page: https://koolcodez.com/projects/fork
+- Language: ClojureScript
+- License: MIT
+
+Features
+- Declarative validation.
+- Submission handling.
+- Dirty tracking per field.
+- Field state management decoupled from rendering.
+
+## Articles
+
+### WebSockets Are Back. The Client Side needs more support.
+https://koolcodez.com/blog/websockets-are-back
+Why bidirectional streaming is newly central to frontend work: OpenAI's Responses API WebSocket mode, Gemini Live API, and the gap in tooling that motivated react-socket.
+
+### How Close Can a PWA Get to a Native App? Closer Than You Think
+https://koolcodez.com/blog/how-close-can-a-pwa-get-to-a-native-app
+A practical experiment pushing the web platform toward native feel, including a live demo and pragmatic findings on when a full native rewrite is unnecessary.
+
+### Inside a 16.67 Millisecond Frame
+https://koolcodez.com/blog/inside-the-frame
+How rendering actually unfolds within a single frame budget, explained through a practical example.
+
+### From Spaghetti to Simplicity
+https://koolcodez.com/blog/from-spaghetti-to-simplicity
+Lessons from rebuilding a legacy trading UI at a global bank: identifying the real constraints, restructuring state, and shipping without blowing the release train.
+
+### Trading Grids: A Technical Deep Dive
+https://koolcodez.com/blog/trading-grid
+Patterns for production ready financial data grids that handle real time market data and complex interaction without regressing performance.
+
+### 10 CSS Features I've Found Really Useful
+https://koolcodez.com/blog/useful-css-features
+Lesser known CSS properties that solve common UI problems cleanly, with working examples.
+
+### We Badly Need Frameworks
+https://koolcodez.com/blog/we-badly-need-frameworks
+A balanced take on what frontend frameworks still do better than assembled toolchains, with honest tradeoffs.
+
+## Availability
+
+Lucio is open to senior frontend engagements, especially in fintech, developer tooling, and high polish UI work where maintainability matters. Contact via https://koolcodez.com/contacts.

@@ -8,7 +8,14 @@ import { getProjectsWithVersions } from '../../config/projects';
 const projects = await getProjectsWithVersions();
 ---
 
-<AppWrapper title={`Projects - ${siteConfig.title}`} description="Interactive projects and experiments.">
+<AppWrapper
+	title={`Projects | React and TypeScript libraries by ${siteConfig.author}`}
+	description="Open source React and TypeScript libraries: type safe WebSocket hooks, virtualized searchable dropdowns, gesture driven sidebars, and Clojure form tooling."
+	breadcrumbs={[
+		{ name: 'Home', url: siteConfig.url },
+		{ name: 'Projects', url: `${siteConfig.url}/projects` },
+	]}
+>
 	<PageHeader
 		title="Projects"
 		subtitle="Open source libraries, published and maintained."
