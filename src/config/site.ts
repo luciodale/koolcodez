@@ -26,8 +26,8 @@ export const siteConfig: SiteConfig = {
   },
   navigation: [
     { href: '/', name: 'Home' },
-    { href: '/projects', name: 'Projects' },
-    { href: '/blog', name: 'Blog' },
-    { href: '/contacts', name: 'Contacts' },
+    { href: '/projects/', name: 'Projects' },
+    { href: '/blog/', name: 'Blog' },
+    { href: '/contacts/', name: 'Contacts' },
   ],
 };

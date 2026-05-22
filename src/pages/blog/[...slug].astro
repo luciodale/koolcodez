@@ -41,8 +41,8 @@ const allPosts = (await getCollection('blog'))
 	author={siteConfig.author}
 	breadcrumbs={[
 		{ name: 'Home', url: siteConfig.url },
-		{ name: 'Blog', url: `${siteConfig.url}/blog` },
-		{ name: post.data.title, url: `${siteConfig.url}/blog/${post.id}` },
+		{ name: 'Blog', url: `${siteConfig.url}/blog/` },
+		{ name: post.data.title, url: `${siteConfig.url}/blog/${post.id}/` },
 	]}
 >
 	<article class="w-full md:max-w-4xl mx-auto md:px-6 py-8 md:py-16">
@@ -92,7 +92,7 @@ const allPosts = (await getCollection('blog'))
 				<ul class="list-none pl-0">
 					{allPosts.map((other) => (
 						<li class="pl-0">
-							<a href={`/blog/${other.id}`} class="no-underline hover:text-accent">
+							<a href={`/blog/${other.id}/`} class="no-underline hover:text-accent">
 								<span class="text-white">{other.data.title}</span>
 								<span class="text-white/60"> — {other.data.description}</span>
 							</a>

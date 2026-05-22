@@ -50,41 +50,63 @@ Nothing groundbreaking. Just a WebSocket wrapper that takes care of the orchestr
 - Reference counted subscriptions, so ten components subscribing to the same channel produce one wire message and one cleanup
 - Acknowledged sends with in flight tracking, so you know if a message was delivered or dropped
 - Automatic reconnection with exponential backoff, subscription restoration, and offline message queuing
-- Callbacks that act as dispatchers, routing incoming messages to the right store updates
+- Typed event hooks that route incoming messages by discriminator, narrowing the payload automatically
 
 And critically: a small custom hook you can call from anywhere, with top notch performance. No duplicate events flying around, no race conditions, no weird behaviors.
 
 ## So I Built It
 
-That is how <a href="/projects/react-socket" target="_blank">react-socket</a> came to be.
+That is how <a href="/projects/react-socket/" target="_blank">react-socket</a> came to be.
 
-The core concept is a `WebSocketManager` that you instantiate once with your protocol types, your serialization functions, and your callbacks. It handles the entire connection lifecycle. Your React components interact with it through thin hooks and store selectors, completely decoupled from the WebSocket orchestration.
+The core concept is a `WebSocketManager` that you instantiate once with your protocol types and your serialization functions. It handles the entire connection lifecycle. Your React components interact with it through thin, single purpose hooks, completely decoupled from the WebSocket orchestration.
 
-Here is the simplest possible setup from the <a href="/projects/react-socket/docs/getting-started" target="_blank">getting started guide</a>:
+Here is the simplest possible setup from the <a href="/projects/react-socket/docs/getting-started/" target="_blank">getting started guide</a>:
 
 ```ts
 // manager.ts
 import { WebSocketManager } from "@luciodale/react-socket"
 
-type TClientMsg = { action: "echo"; text: string }
-type TServerMsg = { action: "echo"; text: string }
+type TClientMsg = { type: "echo"; text: string }
+type TServerMsg = { type: "echo"; text: string }
 
 export const manager = new WebSocketManager<TClientMsg, TServerMsg>({
   url: "ws://localhost:3001/ws",
   serialize: (msg) => JSON.stringify(msg),
   deserialize: (raw) => JSON.parse(raw),
-
-  onMessageReceived(msg) {
-    // route messages to your store
-  },
 })
-
-manager.connect()
 ```
 
-Two generic type parameters, three required options, and you have a fully managed WebSocket connection with automatic reconnection, heartbeat support, and debug tooling built in. The <a href="/projects/react-socket/docs/configuration" target="_blank">configuration reference</a> covers every option, but the defaults are sensible enough that you rarely need to touch them.
+Two generic type parameters, three required options, and you have a fully managed WebSocket connection with automatic reconnection, heartbeat support, and debug tooling built in. The `type` field is the default discriminator the library uses to narrow incoming messages, and the <a href="/projects/react-socket/docs/configuration/" target="_blank">configuration reference</a> covers every option, but the defaults are sensible enough that you rarely need to touch them.
 
-The library also handles <a href="/projects/react-socket/docs/subscriptions" target="_blank">ref counted subscriptions</a> (ten components subscribing to the same channel produce one wire message), <a href="/projects/react-socket/docs/optimistic-updates" target="_blank">acknowledged sends</a> with in flight tracking, and automatic subscription restoration after reconnect. But rather than walk through each feature, let me show you what it looks like against a real protocol.
+Components react to incoming messages with `useSocketEvent`, which narrows by the discriminator, and send through `useSocketSend`:
+
+```tsx
+// Echo.tsx
+import { useSocketEvent, useSocketSend } from "@luciodale/react-socket"
+import { useEffect, useState } from "react"
+import { manager } from "./manager"
+
+export function Echo() {
+  const [response, setResponse] = useState<string | null>(null)
+  const { send } = useSocketSend(manager)
+
+  useSocketEvent(manager, "echo", (msg) => setResponse(msg.text))
+
+  useEffect(() => {
+    manager.connect()
+    return () => manager.disconnect()
+  }, [])
+
+  return (
+    <>
+      <button onClick={() => send({ type: "echo", text: "hello" })}>send</button>
+      {response && <p>server said: {response}</p>}
+    </>
+  )
+}
+```
+
+The library also handles <a href="/projects/react-socket/docs/subscriptions/" target="_blank">ref counted subscriptions</a> (ten components subscribing to the same channel produce one wire message), <a href="/projects/react-socket/docs/optimistic-updates/" target="_blank">acknowledged sends</a> with in flight tracking, and automatic subscription restoration after reconnect. But rather than walk through each feature, let me show you what it looks like against a real protocol.
 
 ## Testing It Against the OpenAI Protocol
 
@@ -98,6 +120,9 @@ Here is how you wire it up. First, define the protocol types. OpenAI's WebSocket
 
 ```ts
 // openai-types.ts
+
+// ── Client → Server ─────────────────────────────────────────────────
+
 type TInputItem = {
   type: "message"
   role: "user" | "system" | "developer"
@@ -110,6 +135,8 @@ export type TClientMsg = {
   input: Array<TInputItem>
   previous_response_id?: string
 }
+
+// ── Server → Client ─────────────────────────────────────────────────
 
 export type TServerMsg =
   | {
@@ -164,25 +191,57 @@ Next, the store. I am using <a href="https://github.com/pmndrs/zustand" target="
 // store.ts
 import { create } from "zustand"
 
+// ── Types ───────────────────────────────────────────────────────────
+
 type TMessage = {
   role: "user" | "assistant"
   content: string
 }
 
-type TChatState = {
+type TChatStore = {
   messages: TMessage[]
   streamingText: string
   isStreaming: boolean
   lastResponseId: string | null
   error: string | null
+
+  pushUserMessage: (content: string) => void
+  startStream: () => void
+  appendDeltas: (deltas: string[]) => void
+  endStream: (responseId: string) => void
+  failStream: (message: string) => void
 }
 
-export const useChatStore = create<TChatState>(() => ({
+// ── Store ───────────────────────────────────────────────────────────
+
+export const useChatStore = create<TChatStore>()((set) => ({
   messages: [],
   streamingText: "",
   isStreaming: false,
   lastResponseId: null,
   error: null,
+
+  pushUserMessage: (content) =>
+    set((s) => ({
+      messages: [...s.messages, { role: "user", content }],
+    })),
+
+  startStream: () =>
+    set({ isStreaming: true, streamingText: "", error: null }),
+
+  appendDeltas: (deltas) =>
+    set((s) => ({ streamingText: s.streamingText + deltas.join("") })),
+
+  endStream: (responseId) =>
+    set((s) => ({
+      messages: [...s.messages, { role: "assistant", content: s.streamingText }],
+      streamingText: "",
+      isStreaming: false,
+      lastResponseId: responseId,
+    })),
+
+  failStream: (message) =>
+    set({ isStreaming: false, error: message }),
 }))
 ```
 
@@ -191,58 +250,16 @@ Now the manager. This is where react-socket connects everything:
 ```ts
 // manager.ts
 import { WebSocketManager } from "@luciodale/react-socket"
-import { useChatStore } from "./store"
 import type { TClientMsg, TServerMsg } from "./openai-types"
 
 export const manager = new WebSocketManager<TClientMsg, TServerMsg>({
   url: "ws://localhost:3001",
   serialize: (msg) => JSON.stringify(msg),
   deserialize: (raw) => JSON.parse(raw),
-
-  onMessageReceived(event) {
-    const { setState, getState } = useChatStore
-
-    switch (event.type) {
-      case "response.created":
-        setState({ isStreaming: true, streamingText: "", error: null })
-        break
-
-      case "response.output_text.delta":
-        setState({ streamingText: getState().streamingText + event.delta })
-        break
-
-      case "response.completed": {
-        const finalText = getState().streamingText
-        setState((s) => ({
-          messages: [...s.messages, { role: "assistant", content: finalText }],
-          streamingText: "",
-          isStreaming: false,
-          lastResponseId: event.response.id,
-        }))
-        break
-      }
-
-      case "response.failed":
-        setState({
-          isStreaming: false,
-          error: event.response.error.message,
-        })
-        break
-    }
-  },
-
-  onConnectionStateChange(state) {
-    if (state === "reconnecting") {
-      useChatStore.setState({ error: "Connection lost. Reconnecting..." })
-    }
-    if (state === "connected") {
-      useChatStore.setState({ error: null })
-    }
-  },
 })
-
-manager.connect()
 ```
+
+That is the entire manager. Url, serialize, deserialize. No callbacks, no switch statement, no listener registry. Dispatch happens inside React, where it belongs, through typed hooks per event type.
 
 You will notice the URL points to `localhost:3001` instead of `wss://api.openai.com`. That is because OpenAI authenticates WebSocket connections via the `Authorization` header, and the browser `WebSocket` API does not support custom headers. You need a small proxy. Here is a minimal one using Bun:
 
@@ -294,14 +311,51 @@ Bun.serve({
 
 Run it with `OPENAI_API_KEY=sk-... bun run proxy.ts` and your browser connects to `ws://localhost:3001`. The proxy adds the auth header and pipes everything through. In production you would do the same thing, just behind your own backend instead of localhost.
 
-Now look at what is not in the manager code. No reconnection logic. No heartbeat timers. No connection state machine. No event listener cleanup. The manager handles all of that. What is left is just a `switch` statement routing events to store updates.
+Next, the streaming bridge. This is the dispatch layer: one hook per event type, narrowed automatically by the discriminator. The token deltas go through `useSocketEventBatch`, which coalesces high frequency events and flushes the batch on a fixed interval, with an `idleMs` safety net so the trailing tokens of a stream do not stall waiting for the next tick:
 
-Finally, the hook and component:
+```tsx
+// StreamBridge.tsx
+import { useSocketEvent, useSocketEventBatch } from "@luciodale/react-socket"
+import { manager } from "./manager"
+import { useChatStore } from "./store"
+
+export function StreamBridge() {
+  useSocketEvent(manager, "response.created", () => {
+    useChatStore.getState().startStream()
+  })
+
+  useSocketEventBatch(
+    manager,
+    "response.output_text.delta",
+    (msgs) => {
+      useChatStore.getState().appendDeltas(msgs.map((m) => m.delta))
+    },
+    { flushMs: 16, idleMs: 8 },
+  )
+
+  useSocketEvent(manager, "response.completed", (event) => {
+    useChatStore.getState().endStream(event.response.id)
+  })
+
+  useSocketEvent(manager, "response.failed", (event) => {
+    useChatStore.getState().failStream(event.response.error.message)
+  })
+
+  return null
+}
+```
+
+A store write per delta is fine for one stream and miserable for many. With `flushMs: 16` the renderer wakes up at most once per frame, and `idleMs: 8` makes sure the last 1-3 tokens of an answer do not sit in the buffer waiting for the next interval tick.
+
+Look at what is not in the bridge. No reconnection logic. No heartbeat timers. No connection state machine. No `addEventListener`/`removeEventListener` cleanup. No discriminator switch. The library narrows each handler's payload through the typed discriminator, the dispatch table is keyed in O(1), and unmount cleans the listeners up automatically.
+
+Then the hook for sending and selecting state:
 
 ```ts
 // useChat.ts
-import { useChatStore } from "./store"
+import { useSocketSend } from "@luciodale/react-socket"
 import { manager } from "./manager"
+import { useChatStore } from "./store"
 
 export function useChat() {
   const messages = useChatStore((s) => s.messages)
@@ -310,24 +364,22 @@ export function useChat() {
   const lastResponseId = useChatStore((s) => s.lastResponseId)
   const error = useChatStore((s) => s.error)
 
-  function send(text: string) {
-    useChatStore.setState((s) => ({
-      messages: [...s.messages, { role: "user" as const, content: text }],
-    }))
+  const { send: sendOnSocket } = useSocketSend(manager)
 
-    manager.send({
-      data: {
-        type: "response.create",
-        model: "gpt-4o",
-        input: [
-          {
-            type: "message",
-            role: "user",
-            content: [{ type: "input_text", text }],
-          },
-        ],
-        ...(lastResponseId && { previous_response_id: lastResponseId }),
-      },
+  function send(text: string) {
+    useChatStore.getState().pushUserMessage(text)
+
+    sendOnSocket({
+      type: "response.create",
+      model: "gpt-4o",
+      input: [
+        {
+          type: "message",
+          role: "user",
+          content: [{ type: "input_text", text }],
+        },
+      ],
+      ...(lastResponseId && { previous_response_id: lastResponseId }),
     })
   }
 
@@ -339,15 +391,21 @@ The `previous_response_id` is what makes multi turn work over WebSocket. Each re
 
 ```tsx
 // Chat.tsx
-import { useState } from "react"
-import { useConnectionState } from "@luciodale/react-socket"
-import { useChat } from "./useChat"
+import { useSocketConnectionState } from "@luciodale/react-socket"
+import { useEffect, useState } from "react"
 import { manager } from "./manager"
+import { StreamBridge } from "./StreamBridge"
+import { useChat } from "./useChat"
 
 export function Chat() {
   const [input, setInput] = useState("")
   const { messages, streamingText, isStreaming, error, send } = useChat()
-  const connectionState = useConnectionState(manager)
+  const connectionState = useSocketConnectionState(manager)
+
+  useEffect(() => {
+    manager.connect()
+    return () => manager.disconnect()
+  }, [])
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -358,6 +416,8 @@ export function Chat() {
 
   return (
     <div>
+      <StreamBridge />
+
       {connectionState !== "connected" && <span>{connectionState}</span>}
 
       {messages.map((msg, i) => (
@@ -390,7 +450,7 @@ export function Chat() {
 }
 ```
 
-That is it. A full streaming LLM chat client with automatic reconnection, connection state indicators, and multi turn conversation support. The `useChat` hook is the entire interface. Need a second component showing a token usage panel or a conversation list? Same hook, same manager, no extra connections.
+That is it. A full streaming LLM chat client with automatic reconnection, connection state indicators, batched token rendering, and multi turn conversation support. The `useChat` hook is the entire send interface, the `StreamBridge` is the entire receive interface. Need a second component showing a token usage panel or a conversation list? Same hooks, same manager, no extra connections.
 
 ## What I Took Away
 
@@ -398,4 +458,4 @@ The browser `WebSocket` API has not changed in over a decade. `onopen`, `onmessa
 
 react-socket is not trying to be clever or do too much. It handles the stuff you do not want to think about so you can focus on the actual product. We are still in the middle of our SSE to WebSocket migration, but so far it has made the transition a lot less painful than I expected.
 
-If any of this resonated, <a href="/projects/react-socket" target="_blank">give it a look</a>. The <a href="/projects/react-socket/docs/getting-started" target="_blank">docs</a> walk you through everything, and there are <a href="/projects/react-socket/demo/fire-and-forget" target="_blank">live demos</a> you can try before committing to anything.
+If any of this resonated, <a href="/projects/react-socket/" target="_blank">give it a look</a>. The <a href="/projects/react-socket/docs/getting-started/" target="_blank">docs</a> walk you through everything, and there are <a href="/projects/react-socket/demo/quick-prompt/" target="_blank">live demos</a> you can try before committing to anything.

@@ -31,7 +31,7 @@ const installCommand =
 		: `;; deps.edn
 {:deps {${project.packageName}/${project.packageName} {:mvn/version "${project.status.replace('clojars v', '')}"}}}`;
 
-const canonicalUrl = new URL(`/projects/${project.slug}`, siteConfig.url).toString();
+const canonicalUrl = new URL(`/projects/${project.slug}/`, siteConfig.url).toString();
 const logoUrl = new URL(project.logo, siteConfig.url).toString();
 
 const softwareLd = {
@@ -94,7 +94,7 @@ const otherProjects = projects.filter((p) => p.slug !== project.slug);
 	ogImage={`/og-${project.slug}.png`}
 	breadcrumbs={[
 		{ name: 'Home', url: siteConfig.url },
-		{ name: 'Projects', url: `${siteConfig.url}/projects` },
+		{ name: 'Projects', url: `${siteConfig.url}/projects/` },
 		{ name: project.title, url: canonicalUrl },
 	]}
 >

@@ -25,7 +25,7 @@ export const projects: Project[] = [
 			'A batteries included React library for real time WebSocket communication. Type safe hooks, automatic reconnection, optimistic updates, and offline message queuing out of the box.',
 		shortDescription:
 			'Type safe WebSocket hooks with reconnection, optimistic updates, and offline queuing.',
-		href: '/projects/react-socket',
+		href: '/projects/react-socket/',
 		tags: ['React Hooks', 'TypeScript', 'WebSocket', 'Real Time'],
 		keywords: [
 			'react websocket',
@@ -51,7 +51,7 @@ export const projects: Project[] = [
 			'A high performance, virtualized dropdown component supporting single and multi selection, async search, custom rendering, and new option creation with zero dependencies.',
 		shortDescription:
 			'Virtualized single and multi select with async search and custom rendering.',
-		href: '/projects/react-searchable-dropdown',
+		href: '/projects/react-searchable-dropdown/',
 		tags: ['React Component', 'TypeScript', 'Fuzzy Search', 'Accessibility'],
 		keywords: [
 			'react dropdown',
@@ -78,7 +78,7 @@ export const projects: Project[] = [
 			'A gesture driven sidebar that brings native app fluidity to the web. Smooth spring physics, touch and mouse support, and a tiny footprint for mobile first interfaces.',
 		shortDescription:
 			'Gesture driven sidebars with spring physics for mobile first interfaces.',
-		href: '/projects/swipe-bar',
+		href: '/projects/swipe-bar/',
 		tags: ['React Component', 'Touch Gestures', 'Mobile UI', 'Zero Dependencies'],
 		keywords: [
 			'react swipe sidebar',
@@ -104,7 +104,7 @@ export const projects: Project[] = [
 			'A headless form management library for Re-frame and Reagent. Handles validation, submission, dirty tracking, and field state with a declarative API.',
 		shortDescription:
 			'Headless form management for Re-frame and Reagent with declarative validation.',
-		href: '/projects/fork',
+		href: '/projects/fork/',
 		tags: ['ClojureScript', 'Re-frame', 'Forms', 'Validation'],
 		keywords: [
 			'clojurescript forms',
