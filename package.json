@@ -3,6 +3,13 @@
   "type": "module",
   "version": "0.0.1",
   "description": "Personal website and blog for Kool Codez",
+  "homepage": "https://koolcodez.com",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/luciodale/koolcodez"
+  },
+  "author": "Lucio D'Alessandro",
+  "license": "MIT",
   "scripts": {
     "dev": "astro dev",
     "build": "astro build",
