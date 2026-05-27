@@ -27,5 +27,10 @@ export default defineConfig({
         plugins: [tailwindcss()],
     },
 
-    adapter: cloudflare()
+    adapter: cloudflare({
+        workerEntryPoint: {
+            path: 'src/worker.ts',
+            namedExports: ['SolarSystem'],
+        },
+    })
 });
