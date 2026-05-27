@@ -13,9 +13,5 @@
   "assets": {
     "binding": "ASSETS",
     "directory": "dist"
-  },
-  "migrations": [
-    { "tag": "v1", "new_sqlite_classes": ["SolarSystem"] },
-    { "tag": "v2", "deleted_classes": ["SolarSystem"] }
-  ]
+  }
 }
