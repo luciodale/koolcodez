@@ -5,6 +5,7 @@ import BlogCardWithImage from "../components/BlogCardWithImage.astro";
 import ProjectCard from "../components/ProjectCard.astro";
 import SectionHeading from "../components/SectionHeading.astro";
 import Segment from "../components/Segment.astro";
+import Logo from "../building-blocks/Logo.astro";
 import { getProjectsWithVersions } from "../config/projects";
 import { siteConfig } from "../config/site";
 
@@ -24,11 +25,10 @@ const recentPosts = sortedPosts.slice(0, 3);
 >
 	<!-- Hero Section -->
 	<section class="text-center max-w-4xl mx-auto">
-		<img
-			src="/kool-codez-logo.svg"
-			alt={siteConfig.title}
-			class="max-w-md mx-auto"
-		/>
+		<div class="flex items-center justify-center gap-2 md:gap-3">
+			<Logo class="h-14 md:h-16 w-auto" />
+			<span class="text-5xl md:text-6xl font-medium tracking-tight text-white">koolcodez</span>
+		</div>
 		<p class="text-xl font-light mx-auto max-w-xl pt-6 text-white/70">
 			A decade of frontend engineering, crafting fast, polished UIs built
 			on a core of clean, stable, and genuinely maintainable code.

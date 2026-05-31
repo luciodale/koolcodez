@@ -13,7 +13,6 @@
   "scripts": {
     "dev": "astro dev",
     "build": "astro build",
-    "og": "bun scripts/generate-og.mjs",
     "preview": "bun run build && wrangler dev",
     "astro": "astro",
     "deploy": "bun run build && wrangler deploy",
