@@ -1,0 +1,114 @@
+---
+title: 'Inherited the frontend of a 150K-user app, mostly vibe coded'
+description: >-
+  The product runs the whole business and has 150K users. The codebase
+  underneath needs a lot of work. Where do you draw the line on quality when this
+  many people depend on it?
+pubDate: 'Jun 02 2026'
+heroImage: '../../assets/hero-fixing-an-ai-built-codebase.webp'
+---
+
+A while ago I was in London, having a coffee with an old colleague. We had worked together on an option trading project I am still proud of, a rewrite of an old, obsolete Redux Saga monster that we turned into a genuinely good codebase despite the complex domain.
+
+He told me things were still going great there, and then I proceeded to tell him that things feel a little rough on the team I am on now. He stopped me half way through my complaints about code quality, AI slop, and so on and simply asked:
+
+- How many users do you have right now?
+- 150K.
+- We still only have a few traders. You can't say your team is not doing it right with those numbers.
+
+I know context matters, as we are now in different spaces, but regardless of that it still made me think about where to draw the line. When to accept or reject a change. What matters for the business.
+
+The genuine answer is I am not sure. But this conversation keeps coming back to me from time to time, so I wanted to tell you what my current project situation is and how I am dealing with it.
+
+Fair warning, there is a part later where, just to get the mobile app through the company firewall, we turn an SSE stream into a WebSocket and then back into SSE again. I will get to it.
+
+## The starting point
+
+About six months ago I joined the team that builds the company's internal AI app. Not a side feature, the actual product the whole business runs on, which obviously gets a lot of attention, especially from the C suite.
+
+The code is just not there. I am not saying that to be unkind, and I will admit further down that I contributed to some of it. It is what happens when a small team builds something fast, leans on AI a lot, and never gets a quiet week to clean up, because there is always another feature due and people waiting on it.
+
+It was started in early 2025, heavily vibe coded. I was told that backend engineers would often implement features end to end, which meant touching the frontend too. There is a quote about AI that I find really amusing and it goes something like:
+
+> the AI generated code looks truly amazing until it is about your area of expertise.
+
+Anyway, here is roughly what I found.
+
+- The web app, a TypeScript React app, was still on react-app-rewired. If you don't know that, it is like being in the middle ages. Builds took about ten minutes.
+- Linting was set up from a random template and never integrated into the git workflow or CI/CD pipeline. So no linting really, and no editor linting set up either.
+- A few trivial unit tests. No working end to end suite.
+- TypeScript, but with `any` in a lot of places, with hand rolled client types that had drifted from the real responses.
+- No server state manager. Every component that fetched data reimplemented its own loading and error handling.
+- Forty or more open pull requests at any time. Spend a couple of days on a feature and you would come back hundreds of commits behind, so conflict resolution was the norm.
+- A hand rolled event bus where any component can fire an event and any other can be listening (reimplementing redux?!?). Of course event names being hard coded at each registration, so `"my-event"` -> `"mY-event"` drifting.
+- localStorage used to cache things it should not have, including base64 avatar images that just kept growing. At one point we started getting production errors because we hit the localStorage size limit.
+- One god context holding everything. Artifacts, uploaded files, presets, integrations, all in the same place.
+- 4 different ways to upload files. Each with its own slightly different flavour (smelling vibe coding? lol).
+- The core component several thousand lines long, almost all of it callbacks, effects, state and flags, with a thin layer of actual UI at the very end.
+- Poor design system in place. Custom Tailwind tokens all over the place, no consistency for sizes, colours, spacing.
+
+At times I am in shock at how things even work.
+
+The obvious thing to do with all of this is nothing. It works, people use it, and nobody wants to take on the responsibility of making fundamental changes and risking regressions.
+
+JK I don't care. I just can't spend every day in a codebase that feels like hell. The space is cutting edge, the project is exciting, but man, that repo is not fun, and I want to have fun at work and ship fast and confidently.
+
+One thing about how I work, because it shapes the rest. I think vibe coding on the job is irresponsible. Shipping code that nobody on the team understands into a product this many people depend on is a bet you eventually lose, and someone else usually pays for it. I use AI constantly, but as a tool, with rules, going back and forth with it and reading everything before it lands.
+
+I will not ship code I do not understand into something this many people depend on. I need to be able to hold it in my head. That is not principle for its own sake, it is the only way I can move fast without making things worse.
+
+## So here is the adventure
+
+First thing I did was move to `vite`. Sorry webpack but your days are gone. It took me about a week and a half, and it cut builds from around ten minutes to barely two, with module hot reload that does not trigger a full page reload for a simple className change. Not the kind of thing anyone notices in a demo, but six months on it has given the whole team hours back.
+
+I did feel the pressure because I was not bringing anything immediately tangible to the table, but thankfully I had already worked with this management team and I was in the sweet spot of being trusted, so I had and still have a lot of freedom.
+
+Then the auth. The logic was spread across a handful of unrelated components, which is exactly the kind of thing that makes everyone afraid to touch anything near it. I pulled it into one place, put the whole app behind a single gate, and deleted a pile of obsolete code that dealt with access, tokens, and permissions. A few regressions on the way, fixed as they came up, and it has been quiet ever since.
+
+Then types. The backends already publish OpenAPI schemas (thank god), so we started generating types from those instead of hand writing them in the client and hoping. The trick was adopting it gradually, a few endpoints at a time, instead of stopping everything for one giant rewrite. That part is worth its own post, so I will save it.
+
+And then a bunch of smaller things. Linting is on, though we still have a backlog to clear before we can enable it in CI/CD. More tests, and more importantly an agreement on how new code should look, so we stop adding to the pile. Smaller pull requests, logic out of components and into hooks, no more `any`, no unjustified `useEffect`. The point is to stop the mess from growing while we slowly fix the rest of it.
+
+We started turning things around once a few good hires came in, colleagues who share many of the same principles. When you are not alone and you are backed, things become exponentially easier.
+
+## Mobile hell
+
+Not long after I joined, a new requirement landed. We needed a mobile app, and we needed it soon (CEO excited about the idea of having the company's AI on his phone on the way to meet the president).
+
+We went with Capacitor, which, to be clear, has been great, no complaints there. But to get to production we had to roll out some top notch hacks that make me smile every time.
+
+It started, the way these things do, with a demo. We needed to show something quickly, so we overrode the browser `fetch` on mobile to return some mocks but at least show the UI functioning, telling ourselves we would clean it up after.
+
+We never did. Code piled up and it became too big a task. So today every single HTTP call the mobile app makes is intercepted by our own version of `fetch` and turned into something else, an RPC call, because the only way out through the company firewall is one endpoint, and everything has to fit through it.
+
+And the streaming, the part the chat depends on, is by a long stretch the craziest bit. On mobile, the SSEs get turned into a WebSocket by the Swift layer so they can get through that one endpoint (which only supports sockets), then turned back into SSE on a stateless gateway node, and only then do they reach the final instance. We convert one thing into another and then back again so it can survive the trip.
+
+Just imagine how intricate things become when you add reconnection logic and dropped message handling for flaky connections on top of all that. Not fun.
+
+We are making concrete plans to move to sockets primarily to avoid this ceremony, and also to have one single stream rather than multiple SSE connections being live at the same time (a design problem really, but what can you do). We will use [react-socket](/projects/react-socket/) as the orchestrator. It is open source. Give it a look if you are dealing with streams.
+
+## Still a good way to go
+
+I want to be honest about this section. We have started on a lot of things, finished very few, and we are far from halfway. What follows is the work in progress, not a victory lap.
+
+The design system is one. A parallel CSS file plus a migration to Tailwind 4 that inherits the good things from the existing stylesheet and adds to them. The goal is to migrate every component, one at a time, and we have started with the low impact ones like badges, toggles, modal skins.
+
+We use Storybook as the documentation surface, with full explanations and variants per component. Plenty of components still to go.
+
+The other thing we just started is the refactor of the core piece. The main driver. The reason the app exists. The AI chat. The god component.
+
+We got to a place where it is impossible to change it without causing regressions. It is not that you have to be careful with it, it is that touching the file at all is a risk. A small change in one place and something subtle breaks, and maybe you realise two weeks later, after your code is in production.
+
+The clearest symptom was a bug where starting a new chat would leak the previous conversation into it if the previous one was still running. You would open a fresh chat and bits of the last one would show up. Nasty. Something that could have been easily prevented if the store had a top level chatId key with everything else nested under it.
+
+So what is the plan? We do not know for certain. We are first breaking it into smaller pieces without changing behaviour, and then we will see what to tackle and in what order. The honest summary is: a lot of work ahead.
+
+## Final words
+
+I realised this article reads a lot like a Reddit rant. Maybe it is one. But I wanted to write it down for two reasons.
+
+The first is the London conversation, which I keep coming back to. 150K users is a real answer. It does not make the code less painful, but it shifts the question from "is this acceptable" to "what is the cost of fixing it, and is the team ready to pay". We are paying. Slowly, on the margins, while we keep shipping. Most days that feels like the right speed.
+
+The second is for anyone reading this because they are about to join a team like ours, or are already in one and wondering if they are alone. You are not. There are a lot of these codebases out there now. The way out is unglamorous: one boundary at a time, one extracted hook, one type generated from a schema, one component moved into Storybook. None of it makes a roadmap look impressive. All of it adds up.
+
+And if you came in here worried AI is going to take your job, I do not think that is exactly where the industry is. AI is producing more code, not less. Someone still has to be able to hold it in their head.
