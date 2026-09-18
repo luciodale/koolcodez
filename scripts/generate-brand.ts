@@ -52,78 +52,36 @@ function avatar(size: number) {
 	return `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}"><circle cx="${size / 2}" cy="${size / 2}" r="${size / 2}" fill="${GROUND}"/>${placed(MARK, offset, offset, markSize)}</svg>`;
 }
 
-function smoothstep(a: number, b: number, v: number) {
-	const t = Math.min(1, Math.max(0, (v - a) / (b - a)));
-	return t * t * (3 - 2 * t);
+// Width of a single line of text as the renderer draws it, so the lockup can
+// be centered exactly.
+async function textWidth(text: string, size: number, weight: number, letterSpacing: number) {
+	const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${size * text.length}" height="${size * 2}"><text x="0" y="${size * 1.4}" font-family="Work Sans" font-weight="${weight}" font-size="${size}" letter-spacing="${letterSpacing}" fill="#fff">${text}</text></svg>`;
+	const { info } = await sharp(Buffer.from(svg)).trim().toBuffer({ resolveWithObject: true });
+	return info.width;
 }
 
-// Copperplate style hatching: horizontal lines that bow away from (cx, cy),
-// swell with distance and taper to nothing near the mark and near clearings.
-// Each line is a filled ribbon so its weight can change along its length.
-function engravedField(w: number, h: number, cx: number, cy: number, clearings: Clearing[]) {
-	const lines: string[] = [];
-	const gap = 5;
-	const step = 3;
-	for (let y0 = gap / 2; y0 < h + gap; y0 += gap) {
-		const top: string[] = [];
-		const bottom: string[] = [];
-		for (let x = -step; x <= w + step; x += step) {
-			const dx = x - cx;
-			const dy = y0 - cy;
-			const d = Math.hypot(dx * 0.8, dy);
-			const wave = 1.4 * Math.sin(x / 110 + y0 / 37) * smoothstep(200, 420, d);
-			const y = y0 + dy * 0.6 * Math.exp(-((d / 190) ** 2)) + wave;
-			let tone = smoothstep(190, 420, Math.hypot(dx * 0.8, y - cy)) * (1 - 0.5 * smoothstep(480, 800, Math.abs(dx)));
-			for (const c of clearings) {
-				tone *= smoothstep(0.9, 1.9, Math.hypot((x - c.cx) / c.rx, (y - c.cy) / c.ry));
-			}
-			const half = (1.9 * tone) / 2;
-			top.push(`${x} ${(y - half).toFixed(2)}`);
-			bottom.push(`${x} ${(y + half).toFixed(2)}`);
-		}
-		lines.push(`M${top.join("L")}L${bottom.reverse().join("L")}Z`);
-	}
-	return `<path fill="${TEXT}" fill-opacity="0.55" d="${lines.join("")}"/>`;
-}
-
-type Clearing = { cx: number; cy: number; rx: number; ry: number };
-
-// Concentric rings shaded like an engraved medallion lit from the top left:
-// each ring swells on the lit side and thins to a hairline on the far side.
-function engravedRings(cx: number, cy: number, r0: number, r1: number, count: number) {
-	const light = (-135 * Math.PI) / 180;
-	const rings: string[] = [];
-	for (let i = 0; i < count; i++) {
-		const r = r0 + ((r1 - r0) * i) / (count - 1);
-		const band = Math.sin((Math.PI * (i + 0.5)) / count);
-		const outer: string[] = [];
-		const inner: string[] = [];
-		for (let k = 0; k <= 360; k += 2) {
-			const a = (k * Math.PI) / 180;
-			const lit = (0.5 + 0.5 * Math.cos(a - light)) ** 1.6;
-			const half = (0.15 + 2.1 * lit * band) / 2;
-			outer.push(`${(cx + (r + half) * Math.cos(a)).toFixed(2)} ${(cy + (r + half) * Math.sin(a)).toFixed(2)}`);
-			inner.push(`${(cx + (r - half) * Math.cos(a)).toFixed(2)} ${(cy + (r - half) * Math.sin(a)).toFixed(2)}`);
-		}
-		rings.push(`M${outer.join("L")}ZM${inner.reverse().join("L")}Z`);
-	}
-	return `<path fill="${TEXT}" fill-opacity="0.8" fill-rule="evenodd" d="${rings.join("")}"/>`;
-}
-
-function linkedinBanner() {
+// Same lockup as the homepage hero: orange mark, white wordmark, on flat black
+// with a faint dot grid.
+async function linkedinBanner() {
 	const w = 1584;
 	const h = 396;
-	const cx = w / 2;
 	const cy = h / 2 - 6;
-	const markSize = 190;
-	const url = { right: w - 56, baseline: h - 40, width: 196, size: 28 };
-	const urlClearing = { cx: url.right - url.width / 2, cy: url.baseline - url.size / 3, rx: url.width / 2 + 20, ry: url.size };
+	const markSize = 116;
+	const gap = 22;
+	const word = { text: "koolcodez", size: 104, weight: 500, spacing: -2.6 };
+	const wordWidth = await textWidth(word.text, word.size, word.weight, word.spacing);
+	const left = (w - (markSize + gap + wordWidth)) / 2;
+	const pitch = 24;
+	const dots: string[] = [];
+	for (let y = pitch / 2; y < h; y += pitch) {
+		for (let x = pitch / 2; x < w; x += pitch) dots.push(`M${x} ${y}h0.01`);
+	}
 	return `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}">
-<rect width="${w}" height="${h}" fill="${GROUND}"/>
-${engravedField(w, h, cx, cy, [urlClearing])}
-${engravedRings(cx, cy, 136, 176, 9)}
-${placed(MARK, cx - markSize / 2, cy - markSize / 2, markSize, TEXT)}
-<text x="${url.right}" y="${url.baseline}" text-anchor="end" font-family="Work Sans" font-weight="500" font-size="${url.size}" letter-spacing="0.5" fill="${TEXT}">koolcodez.com</text>
+<rect width="${w}" height="${h}" fill="#000000"/>
+<path d="${dots.join("")}" stroke="${TEXT}" stroke-opacity="0.16" stroke-width="2.4" stroke-linecap="round"/>
+${placed(MARK, left, cy - markSize / 2, markSize)}
+<text x="${left + markSize + gap}" y="${cy + word.size * 0.36}" font-family="Work Sans" font-weight="${word.weight}" font-size="${word.size}" letter-spacing="${word.spacing}" fill="${TEXT}">${word.text}</text>
+<text x="${w - 56}" y="${h - 40}" text-anchor="end" font-family="Work Sans" font-weight="400" font-size="26" fill="${TEXT}" fill-opacity="0.7">koolcodez.com</text>
 </svg>`;
 }
 
@@ -178,5 +136,5 @@ await png(appIcon(192), "public/icon-192.png");
 await png(appIcon(512), "public/icon-512.png");
 await png(appIcon(512), "public/logo.png");
 await png(avatar(512), "brand/github-avatar.png");
-await png(linkedinBanner(), "brand/linkedin-banner.png");
+await png(await linkedinBanner(), "brand/linkedin-banner.png");
 await png(ogDefault(), "public/og-default.png");
