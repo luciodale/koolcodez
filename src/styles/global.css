@@ -74,6 +74,19 @@ body, html {
 }
 
 /* Liquid Glass Border Effect */
+/* Typed so the gradient angle can be animated rather than jumping. */
+@property --border-angle {
+  syntax: '<angle>';
+  initial-value: 135deg;
+  inherits: false;
+}
+
+@keyframes border-sweep {
+  to {
+    --border-angle: 495deg;
+  }
+}
+
 .liquid-glass-border {
   position: relative;
   background-clip: padding-box;
@@ -85,8 +98,11 @@ body, html {
   inset: 0;
   border-radius: 0.5rem;
   padding: 0.5px;
+  /* Paused at rest; on hover the bright corners travel around the border and
+     stop where they are on leave, so there is no snap back. */
+  animation: border-sweep 4s linear infinite paused;
   background: linear-gradient(
-    135deg,
+    var(--border-angle),
     rgba(255, 255, 255, 0.4) 0%,
     rgba(255, 255, 255, 0.15) 25%,
     rgba(255, 255, 255, 0.05) 50%,
@@ -100,4 +116,14 @@ body, html {
   mask-composite: exclude;
   pointer-events: none;
   z-index: 1;
+}
+
+.liquid-glass-border:is(:hover, :focus-visible)::before {
+  animation-play-state: running;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .liquid-glass-border::before {
+    animation: none;
+  }
 }
