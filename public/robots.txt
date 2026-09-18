@@ -10,6 +10,15 @@ Allow: /
 User-agent: Claude-Web
 Allow: /
 
+User-agent: OAI-SearchBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: anthropic-ai
+Allow: /
+
 User-agent: PerplexityBot
 Allow: /
 
@@ -20,3 +29,7 @@ User-agent: CCBot
 Allow: /
 
 Sitemap: https://koolcodez.com/sitemap-index.xml
+
+# Project doc sites are served by their own Workers under /projects/*, so their
+# sitemaps are not part of the root sitemap index. List them explicitly.
+Sitemap: https://koolcodez.com/projects/react-socket/sitemap-index.xml

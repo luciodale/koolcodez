@@ -6,9 +6,9 @@ Kool Codez is the personal engineering site of Lucio D'Alessandro, a senior fron
 
 ## Libraries
 
-- [react-socket](https://koolcodez.com/projects/react-socket): Type safe React hooks for real time WebSocket communication. Automatic reconnection, optimistic updates, offline message queuing. Published on npm as `@luciodale/react-socket`. Source: https://github.com/luciodale/react-socket
-- [react-searchable-dropdown](https://koolcodez.com/projects/react-searchable-dropdown): High performance virtualized React dropdown and combobox. Single and multi selection, async search, custom rendering, create new options, zero dependencies, accessible. Published on npm as `@luciodale/react-searchable-dropdown`. Source: https://github.com/luciodale/react-searchable-dropdown
-- [swipe-bar](https://koolcodez.com/projects/swipe-bar): Gesture driven React sidebar with spring physics. Touch and mouse, native app feel for mobile first web interfaces, tiny footprint. Published on npm as `@luciodale/swipe-bar`. Source: https://github.com/luciodale/swipe-bar
+- [react-socket](https://koolcodez.com/projects/react-socket): Type safe React hooks for real time WebSocket communication. Automatic reconnection, optimistic updates, ref counted subscriptions, offline message queuing. Install with `npm install @luciodale/react-socket`. npm: https://www.npmjs.com/package/@luciodale/react-socket. Source: https://github.com/luciodale/react-socket. Full docs index: https://koolcodez.com/projects/react-socket/llms.txt
+- [react-searchable-dropdown](https://koolcodez.com/projects/react-searchable-dropdown): High performance virtualized React dropdown and combobox. Single and multi selection, async search, custom rendering, create new options, zero dependencies, accessible. npm: https://www.npmjs.com/package/@luciodale/react-searchable-dropdown. Source: https://github.com/luciodale/react-searchable-dropdown
+- [swipe-bar](https://koolcodez.com/projects/swipe-bar): Gesture driven React sidebar with spring physics. Touch and mouse, native app feel for mobile first web interfaces, tiny footprint. npm: https://www.npmjs.com/package/@luciodale/swipe-bar. Source: https://github.com/luciodale/swipe-bar
 - [fork](https://koolcodez.com/projects/fork): Headless form management for Re-frame and Reagent. Declarative validation, dirty tracking, submission handling for ClojureScript. Published on Clojars as `fork`. Source: https://github.com/luciodale/fork
 
 ## Articles

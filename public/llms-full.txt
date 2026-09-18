@@ -18,9 +18,12 @@ Kool Codez is the personal engineering site of Lucio D'Alessandro, a senior fron
 A batteries included React library for real time WebSocket communication.
 
 - Package: `@luciodale/react-socket` on npm
+- npm page: https://www.npmjs.com/package/@luciodale/react-socket
 - Install: `npm install @luciodale/react-socket`
 - Repository: https://github.com/luciodale/react-socket
 - Project page: https://koolcodez.com/projects/react-socket
+- Documentation: https://koolcodez.com/projects/react-socket/docs/getting-started
+- Docs index for LLMs: https://koolcodez.com/projects/react-socket/llms.txt
 - Language: TypeScript
 - License: MIT
 

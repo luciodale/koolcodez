@@ -34,6 +34,11 @@ const installCommand =
 const canonicalUrl = new URL(`/projects/${project.slug}/`, siteConfig.url).toString();
 const logoUrl = new URL(project.logo, siteConfig.url).toString();
 
+const registryUrl =
+	project.registry === 'npm'
+		? `https://www.npmjs.com/package/${project.packageName}`
+		: `https://clojars.org/${project.packageName}`;
+
 const softwareLd = {
 	'@context': 'https://schema.org',
 	'@type': 'SoftwareApplication',
@@ -42,6 +47,12 @@ const softwareLd = {
 	description: project.description,
 	url: canonicalUrl,
 	image: logoUrl,
+	// Resolve page, registry entry, and repo to one entity so search and
+	// answer engines link the project name to the installable package.
+	downloadUrl: registryUrl,
+	installUrl: registryUrl,
+	codeRepository: project.repoUrl,
+	sameAs: [registryUrl, project.repoUrl],
 	applicationCategory: project.applicationCategory,
 	operatingSystem: 'Cross platform',
 	keywords: project.keywords.join(', '),
@@ -66,6 +77,7 @@ const sourceCodeLd = {
 	name: project.packageName,
 	description: project.description,
 	codeRepository: project.repoUrl,
+	sameAs: [registryUrl, project.repoUrl],
 	programmingLanguage: project.programmingLanguage,
 	url: canonicalUrl,
 	license: `https://opensource.org/licenses/${project.license}`,
@@ -80,10 +92,7 @@ const sourceCodeLd = {
 const softwareLdJson = JSON.stringify(softwareLd);
 const sourceCodeLdJson = JSON.stringify(sourceCodeLd);
 
-const packageLink =
-	project.registry === 'npm'
-		? `https://www.npmjs.com/package/${project.packageName}`
-		: `https://clojars.org/${project.packageName}`;
+const packageLink = registryUrl;
 
 const otherProjects = projects.filter((p) => p.slug !== project.slug);
 ---
