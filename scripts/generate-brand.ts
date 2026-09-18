@@ -16,7 +16,6 @@ import { dirname, join } from "node:path";
 
 const ACCENT = "#ef4723";
 const GROUND = "#0c0a09";
-const OXBLOOD = "#42170c";
 const TEXT = "#ffffff";
 
 export const MARK =
@@ -36,8 +35,8 @@ function markSvg(d: string, fill: string) {
 }
 
 // Mark placed in a box of `size` px whose top left corner sits at (x, y).
-function placed(d: string, x: number, y: number, size: number) {
-	return `<svg x="${x}" y="${y}" width="${size}" height="${size}" viewBox="0 0 100 100"><path fill="${ACCENT}" d="${d}"/></svg>`;
+function placed(d: string, x: number, y: number, size: number, fill = ACCENT) {
+	return `<svg x="${x}" y="${y}" width="${size}" height="${size}" viewBox="0 0 100 100"><path fill="${fill}" d="${d}"/></svg>`;
 }
 
 // Rounded dark tile, same shape as the previous app icons (22% corner radius).
@@ -53,65 +52,78 @@ function avatar(size: number) {
 	return `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}"><circle cx="${size / 2}" cy="${size / 2}" r="${size / 2}" fill="${GROUND}"/>${placed(MARK, offset, offset, markSize)}</svg>`;
 }
 
-// Deterministic PRNG so the banner renders identically on every run.
-function mulberry32(seed: number) {
-	let a = seed;
-	return function () {
-		a |= 0;
-		a = (a + 0x6d2b79f5) | 0;
-		let t = Math.imul(a ^ (a >>> 15), 1 | a);
-		t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
-		return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-	};
+function smoothstep(a: number, b: number, v: number) {
+	const t = Math.min(1, Math.max(0, (v - a) / (b - a)));
+	return t * t * (3 - 2 * t);
 }
 
-// A burst of long tapered thorns radiating from (cx, cy), echoing the mark.
-function thornBurst(cx: number, cy: number, count: number, seed: number) {
-	const rand = mulberry32(seed);
-	const blades: string[] = [];
-	for (let i = 0; i < count; i++) {
-		const angle = (i / count) * 360 + (rand() - 0.5) * (240 / count);
-		const r0 = 130 + rand() * 40;
-		const r1 = r0 + 260 + rand() * 820;
-		const peak = r0 + (r1 - r0) * (0.18 + rand() * 0.14);
-		const half = 1.2 + rand() * 3.4;
-		const opacity = (0.12 + rand() * 0.3).toFixed(3);
-		blades.push(
-			`<path transform="translate(${cx} ${cy}) rotate(${angle.toFixed(2)})" fill-opacity="${opacity}" d="M${r0} 0Q${peak.toFixed(1)} ${half.toFixed(2)} ${r1.toFixed(1)} 0Q${peak.toFixed(1)} ${(-half).toFixed(2)} ${r0} 0Z"/>`,
-		);
+// Copperplate style hatching: horizontal lines that bow away from (cx, cy),
+// swell with distance and taper to nothing near the mark and near clearings.
+// Each line is a filled ribbon so its weight can change along its length.
+function engravedField(w: number, h: number, cx: number, cy: number, clearings: Clearing[]) {
+	const lines: string[] = [];
+	const gap = 5;
+	const step = 3;
+	for (let y0 = gap / 2; y0 < h + gap; y0 += gap) {
+		const top: string[] = [];
+		const bottom: string[] = [];
+		for (let x = -step; x <= w + step; x += step) {
+			const dx = x - cx;
+			const dy = y0 - cy;
+			const d = Math.hypot(dx * 0.8, dy);
+			const wave = 1.4 * Math.sin(x / 110 + y0 / 37) * smoothstep(200, 420, d);
+			const y = y0 + dy * 0.6 * Math.exp(-((d / 190) ** 2)) + wave;
+			let tone = smoothstep(190, 420, Math.hypot(dx * 0.8, y - cy)) * (1 - 0.5 * smoothstep(480, 800, Math.abs(dx)));
+			for (const c of clearings) {
+				tone *= smoothstep(0.9, 1.9, Math.hypot((x - c.cx) / c.rx, (y - c.cy) / c.ry));
+			}
+			const half = (1.9 * tone) / 2;
+			top.push(`${x} ${(y - half).toFixed(2)}`);
+			bottom.push(`${x} ${(y + half).toFixed(2)}`);
+		}
+		lines.push(`M${top.join("L")}L${bottom.reverse().join("L")}Z`);
 	}
-	return blades.join("");
+	return `<path fill="${TEXT}" fill-opacity="0.55" d="${lines.join("")}"/>`;
+}
+
+type Clearing = { cx: number; cy: number; rx: number; ry: number };
+
+// Concentric rings shaded like an engraved medallion lit from the top left:
+// each ring swells on the lit side and thins to a hairline on the far side.
+function engravedRings(cx: number, cy: number, r0: number, r1: number, count: number) {
+	const light = (-135 * Math.PI) / 180;
+	const rings: string[] = [];
+	for (let i = 0; i < count; i++) {
+		const r = r0 + ((r1 - r0) * i) / (count - 1);
+		const band = Math.sin((Math.PI * (i + 0.5)) / count);
+		const outer: string[] = [];
+		const inner: string[] = [];
+		for (let k = 0; k <= 360; k += 2) {
+			const a = (k * Math.PI) / 180;
+			const lit = (0.5 + 0.5 * Math.cos(a - light)) ** 1.6;
+			const half = (0.15 + 2.1 * lit * band) / 2;
+			outer.push(`${(cx + (r + half) * Math.cos(a)).toFixed(2)} ${(cy + (r + half) * Math.sin(a)).toFixed(2)}`);
+			inner.push(`${(cx + (r - half) * Math.cos(a)).toFixed(2)} ${(cy + (r - half) * Math.sin(a)).toFixed(2)}`);
+		}
+		rings.push(`M${outer.join("L")}ZM${inner.reverse().join("L")}Z`);
+	}
+	return `<path fill="${TEXT}" fill-opacity="0.8" fill-rule="evenodd" d="${rings.join("")}"/>`;
 }
 
 function linkedinBanner() {
 	const w = 1584;
 	const h = 396;
 	const cx = w / 2;
-	const cy = h / 2 - 8;
+	const cy = h / 2 - 6;
 	const markSize = 190;
-	const x = cx - markSize / 2;
-	const y = cy - markSize / 2;
+	const url = { right: w - 56, baseline: h - 40, width: 196, size: 28 };
+	const urlClearing = { cx: url.right - url.width / 2, cy: url.baseline - url.size / 3, rx: url.width / 2 + 20, ry: url.size };
 	return `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}">
-<defs>
-	<radialGradient id="glow" cx="${cx}" cy="${cy}" r="420" gradientUnits="userSpaceOnUse" gradientTransform="translate(${cx} ${cy}) scale(2 1) translate(${-cx} ${-cy})">
-		<stop offset="0" stop-color="${OXBLOOD}" stop-opacity="1"/>
-		<stop offset="0.45" stop-color="${OXBLOOD}" stop-opacity="0.45"/>
-		<stop offset="1" stop-color="${OXBLOOD}" stop-opacity="0"/>
-	</radialGradient>
-	<radialGradient id="fade" cx="${cx}" cy="${cy}" r="760" gradientUnits="userSpaceOnUse">
-		<stop offset="0" stop-color="#fff" stop-opacity="1"/>
-		<stop offset="0.55" stop-color="#fff" stop-opacity="0.55"/>
-		<stop offset="1" stop-color="#fff" stop-opacity="0"/>
-	</radialGradient>
-	<mask id="rays" maskUnits="userSpaceOnUse" x="0" y="0" width="${w}" height="${h}"><rect width="${w}" height="${h}" fill="url(#fade)"/></mask>
-	<filter id="halo" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="22"/></filter>
-</defs>
 <rect width="${w}" height="${h}" fill="${GROUND}"/>
-<rect width="${w}" height="${h}" fill="url(#glow)"/>
-<g mask="url(#rays)" fill="${ACCENT}">${thornBurst(cx, cy, 72, 7)}</g>
-<g filter="url(#halo)" opacity="0.55">${placed(MARK, x, y, markSize)}</g>
-${placed(MARK, x, y, markSize)}
-<text x="${w - 56}" y="${h - 40}" text-anchor="end" font-family="Work Sans" font-weight="500" font-size="28" fill="${ACCENT}">koolcodez.com</text>
+${engravedField(w, h, cx, cy, [urlClearing])}
+${engravedRings(cx, cy, 136, 176, 9)}
+${placed(MARK, cx - markSize / 2, cy - markSize / 2, markSize, TEXT)}
+<text x="${url.right}" y="${url.baseline}" text-anchor="end" font-family="Work Sans" font-weight="500" font-size="${url.size}" letter-spacing="0.5" fill="${TEXT}">koolcodez.com</text>
 </svg>`;
 }
 
