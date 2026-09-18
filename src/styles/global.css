@@ -74,17 +74,24 @@ body, html {
 }
 
 /* Liquid Glass Border Effect */
-/* Typed so the gradient angle can be animated rather than jumping. */
+/* Typed so the gradient angle, tint and strength can transition rather than
+   jumping. */
 @property --border-angle {
   syntax: '<angle>';
   initial-value: 135deg;
   inherits: false;
 }
 
-@keyframes border-sweep {
-  to {
-    --border-angle: 495deg;
-  }
+@property --border-tint {
+  syntax: '<color>';
+  initial-value: #fff;
+  inherits: false;
+}
+
+@property --border-boost {
+  syntax: '<number>';
+  initial-value: 1;
+  inherits: false;
 }
 
 .liquid-glass-border {
@@ -98,16 +105,19 @@ body, html {
   inset: 0;
   border-radius: 0.5rem;
   padding: 0.5px;
-  /* Paused at rest; on hover the bright corners travel around the border and
-     stop where they are on leave, so there is no snap back. */
-  animation: border-sweep 4s linear infinite paused;
+  /* On hover the bright corners swing to the opposite diagonal and the
+     border turns accent red; both reverse when the hover ends. */
+  transition:
+    --border-angle 250ms ease-out,
+    --border-tint 250ms ease-out,
+    --border-boost 250ms ease-out;
   background: linear-gradient(
     var(--border-angle),
-    rgba(255, 255, 255, 0.4) 0%,
-    rgba(255, 255, 255, 0.15) 25%,
-    rgba(255, 255, 255, 0.05) 50%,
-    rgba(255, 255, 255, 0.15) 75%,
-    rgba(255, 255, 255, 0.4) 100%
+    color-mix(in srgb, var(--border-tint) calc(40% * var(--border-boost)), transparent) 0%,
+    color-mix(in srgb, var(--border-tint) calc(15% * var(--border-boost)), transparent) 25%,
+    color-mix(in srgb, var(--border-tint) calc(5% * var(--border-boost)), transparent) 50%,
+    color-mix(in srgb, var(--border-tint) calc(15% * var(--border-boost)), transparent) 75%,
+    color-mix(in srgb, var(--border-tint) calc(40% * var(--border-boost)), transparent) 100%
   );
   -webkit-mask: 
     linear-gradient(#fff 0 0) content-box, 
@@ -119,11 +129,13 @@ body, html {
 }
 
 .liquid-glass-border:is(:hover, :focus-visible)::before {
-  animation-play-state: running;
+  --border-angle: 225deg;
+  --border-tint: var(--color-accent);
+  --border-boost: 2.2;
 }
 
 @media (prefers-reduced-motion: reduce) {
   .liquid-glass-border::before {
-    animation: none;
+    transition: none;
   }
 }
