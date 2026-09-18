@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="public/kool-codez-logo.svg" alt="Kool Codez" width="300">
+  <img src="public/og-default.png" alt="Kool Codez" width="600">
 </div>
 
 # Kool Codez
